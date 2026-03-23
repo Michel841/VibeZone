@@ -14,9 +14,12 @@ vibezone/
 ├── login.html              ← Connexion utilisateur
 ├── register.html           ← Inscription
 ├── profile.html            ← Profil utilisateur
+├── news.html               ← Fil d'actualites public
+├── messages.html            ← messageries utilisateurs
 ├── style.css               ← Styles globaux
 ├── js/
 │   ├── data.js             ← Données & fonctions utilitaires
+│   ├── messaging.js        ← message, broadcast, actuallites
 │   └── app.js              ← Animations & nav
 └── admin/
     ├── login.html          ← Connexion admin sécurisée
