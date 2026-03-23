@@ -50,12 +50,15 @@ Double-clique sur `index.html` ou ouvre-le dans un navigateur.
 - **Détail événement**: Description complète, barre de remplissage, réservation
 - **Connexion / Inscription**: Formulaires sécurisés avec validation
 - **Profil**: Favoris sauvegardés, modifier ses infos, supprimer le compte
+- **Message**: Discussion entre membre et admin
+- **Actualite**: Recevoir des nouvelles
 
 ### Panel Admin (`/admin/login.html`)
 - **Dashboard**: Stats globales, derniers événements, derniers membres
 - **Gestion événements**: Tableau complet, filtre, recherche, éditer, supprimer
 - **Gestion utilisateurs**: Liste, détail modal, supprimer
 - **Ajouter un événement**: Formulaire complet avec aperçu en temps réel
+- **Actualite**: Publication des nouvelles
 
 ## 💾 Stockage
 
