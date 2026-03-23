@@ -6,27 +6,33 @@ Un site événementiel complet avec espace public et panel d'administration.
 
 ```
 vibezone/
-├── index.html              ← Page d'accueil
-├── events.html             ← Liste de tous les événements
-├── activities.html         ← Activités & ateliers
-├── concerts.html           ← Concerts
-├── event-detail.html       ← Détail d'un événement
-├── login.html              ← Connexion utilisateur
-├── register.html           ← Inscription
-├── profile.html            ← Profil utilisateur
-├── news.html               ← Fil d'actualites public
-├── messages.html            ← messageries utilisateurs
-├── style.css               ← Styles globaux
+├── index.html             ← Page d'accueil
+├── style.css              ← Styles globaux (Syne, dark theme)
+├── events.html            ← Liste événements + filtres
+├── activities.html        ← Activités / ateliers
+├── concerts.html          ← Page concerts
+├── event-detail.html      ← Détail événement + photo
+├── news.html              ← Fil d'actualités public
+├── messages.html          ← Messagerie utilisateurs
+├── login.html             ← Connexion
+├── register.html          ← Inscription
+├── profile.html           ← Profil + avatar
+├── README.md              ← Documentation
+├── .gitignore             ← Fichiers ignorés par Git
 ├── js/
-│   ├── data.js             ← Données & fonctions utilitaires
-│   ├── messaging.js        ← message, broadcast, actuallites
-│   └── app.js              ← Animations & nav
+│   ├── data.js            ← Données + localStorage + photo événements
+│   ├── messaging.js       ← Messages, broadcasts, actualités
+│   └── app.js             ← Animations + scroll
 └── admin/
-    ├── login.html          ← Connexion admin sécurisée
-    ├── dashboard.html      ← Tableau de bord admin
-    ├── events-admin.html   ← Gestion des événements
-    ├── users-admin.html    ← Gestion des utilisateurs
-    └── add-event.html      ← Ajouter / modifier un événement
+    ├── login.html         ← Accès admin sécurisé
+    ├── dashboard.html     ← Tableau de bord + stats
+    ├── add-event.html     ← Ajout/édition + photo événement
+    ├── events-admin.html  ← Gestion événements
+    ├── users-admin.html   ← Gestion membres
+    ├── news-admin.html    ← Publications actualités
+    ├── admin-messages.html← Messages admin + broadcasts
+    ├── admin-avatar.css   ← Styles avatar admin
+    └── admin-avatar.js    ← Logique photo profil admin
 ```
 
 ## 🚀 Comment utiliser
