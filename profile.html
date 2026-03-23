@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon Profil — VibeZone</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Avatar uploader ── */
+    .avatar-wrap {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .avatar-wrap .avatar {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 38px;
+      border: 3px solid var(--border);
+      transition: border-color 0.2s;
+      user-select: none;
+    }
+    .avatar-wrap:hover .avatar { border-color: var(--accent); }
+    .avatar-overlay {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: rgba(0,0,0,0.55);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      opacity: 0; transition: opacity 0.2s; pointer-events: none;
+    }
+    .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+    .avatar-overlay .cam { font-size: 22px; }
+    .avatar-overlay span { font-size: 10px; font-family: var(--font-mono); color:#fff; letter-spacing:.06em; text-transform:uppercase; }
+    .remove-photo-btn {
+      position: absolute; bottom: 2px; right: 2px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--bg);
+      color: #fff; font-size: 13px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 2;
+    }
+    .avatar-wrap:hover .remove-photo-btn.has-photo { opacity: 1; }
+    #avatar-file-input { display: none; }
+
+    /* ── Crop modal ── */
+    .crop-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(14px);
+      z-index: 4000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .crop-overlay.open { opacity: 1; pointer-events: all; }
+    .crop-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      width: 100%; max-width: 420px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      transform: scale(.95); transition: transform .25s;
+    }
+    .crop-overlay.open .crop-box { transform: scale(1); }
+    .crop-box h3 { font-family: var(--font-display); font-size: 28px; letter-spacing:1px; align-self: flex-start; }
+    .crop-circle {
+      width: 280px; height: 280px; border-radius: 50%;
+      overflow: hidden; border: 3px solid var(--accent);
+      box-shadow: 0 0 0 5px rgba(255,77,77,.15);
+      cursor: move; touch-action: none; position: relative;
+    }
+    #crop-canvas { display: block; }
+    .crop-controls { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .ctrl-row { display: flex; align-items: center; gap: 12px; }
+    .ctrl-row label { font-size: 12px; font-family: var(--font-mono); color: var(--text3); width: 52px; text-transform: uppercase; }
+    .ctrl-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+    .crop-actions { display: flex; gap: 12px; width: 100%; }
+    .crop-actions button { flex:1; padding:13px; border-radius:12px; font-size:14px; font-weight:700; font-family:var(--font-body); cursor:pointer; border:none; transition:.2s; }
+    .c-cancel { background: var(--surface2); color: var(--text2); }
+    .c-cancel:hover { background: var(--border); }
+    .c-confirm { background: var(--accent); color: #fff; }
+    .c-confirm:hover { background: #e02222; }
+  </style>
+</head>
+<body>
+  <nav id="navbar">
+    <a href="index.html" class="logo">VIBE<span>ZONE</span></a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="events.html">Événements</a>
+      <a href="activities.html">Activités</a>
+      <a href="concerts.html">Concerts</a>
+      <a href="profile.html" class="active" id="nav-profile">Mon Profil</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-primary" id="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </nav>
+
+  <div id="page-content" class="profile-page"></div>
+
+  <!-- Shared file input -->
+  <input type="file" id="avatar-file-input" accept="image/*"/>
+
+  <!-- Crop Modal -->
+  <div class="crop-overlay" id="crop-overlay">
+    <div class="crop-box">
+      <h3>📸 Ajuster la photo</h3>
+      <div class="crop-circle" id="crop-circle">
+        <canvas id="crop-canvas" width="280" height="280"></canvas>
+      </div>
+      <div class="crop-controls">
+        <div class="ctrl-row">
+          <label>Zoom</label>
+          <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1" oninput="drawCrop()"/>
+        </div>
+        <div class="ctrl-row">
+          <label>Rotation</label>
+          <input type="range" id="crop-rotate" min="-180" max="180" step="1" value="0" oninput="drawCrop()"/>
+        </div>
+      </div>
+      <div class="crop-actions">
+        <button class="c-cancel" onclick="closeCrop()">Annuler</button>
+        <button class="c-confirm" onclick="confirmCrop()">✓ Appliquer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const user = getCurrentUser();
+    if (!user) window.location.href = 'login.html';
+
+    // ── Avatar storage helpers ────────────────────────────────────
+    const avatarKey = () => 'vz_avatar_' + user.id;
+    const getAvatar  = () => localStorage.getItem(avatarKey()) || null;
+    function saveAvatar(dataUrl) {
+      localStorage.setItem(avatarKey(), dataUrl);
+      user.avatar = dataUrl;
+      localStorage.setItem('vz_current_user', JSON.stringify(user));
+    }
+    function deleteAvatar() {
+      localStorage.removeItem(avatarKey());
+      user.avatar = null;
+      localStorage.setItem('vz_current_user', JSON.stringify(user));
+    }
+
+    // ── Build avatar element (img or initials) ────────────────────
+    function buildAvatarEl(size) {
+      const url = getAvatar();
+      if (url) {
+        const img = document.createElement('img');
+        img.src = url; img.className = 'avatar';
+        img.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:3px solid var(--border);`;
+        return img;
+      }
+      const initials = user.name ? user.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) : '?';
+      const div = document.createElement('div');
+      div.className = 'avatar';
+      div.style.cssText = `width:${size}px;height:${size}px;font-size:${Math.round(size*.34)}px;`;
+      div.textContent = initials;
+      return div;
+    }
+
+    function refreshWrap(id, size) {
+      const wrap = document.getElementById(id);
+      if (!wrap) return;
+      wrap.querySelectorAll('.avatar, img.avatar').forEach(el => el.remove());
+      wrap.prepend(buildAvatarEl(size));
+      const btn = wrap.querySelector('.remove-photo-btn');
+      if (btn) btn.classList.toggle('has-photo', !!getAvatar());
+    }
+
+    function refreshAllAvatars() {
+      refreshWrap('aw-header', 110);
+      refreshWrap('aw-settings', 80);
+    }
+
+    // ── Crop engine ───────────────────────────────────────────────
+    const CSIZE = 280;
+    let _img = null, _drag = null, _off = {x:0, y:0};
+
+    function openCrop(file) {
+      const r = new FileReader();
+      r.onload = e => {
+        _img = new Image();
+        _img.onload = () => {
+          _off = {x:0, y:0};
+          document.getElementById('crop-zoom').value = 1;
+          document.getElementById('crop-rotate').value = 0;
+          document.getElementById('crop-overlay').classList.add('open');
+          drawCrop();
+        };
+        _img.src = e.target.result;
+      };
+      r.readAsDataURL(file);
+    }
+    function closeCrop() { document.getElementById('crop-overlay').classList.remove('open'); }
+
+    function drawCrop() {
+      const canvas = document.getElementById('crop-canvas');
+      const ctx = canvas.getContext('2d');
+      const zoom = parseFloat(document.getElementById('crop-zoom').value);
+      const rot  = parseFloat(document.getElementById('crop-rotate').value) * Math.PI / 180;
+      ctx.clearRect(0, 0, CSIZE, CSIZE);
+      ctx.save();
+      ctx.translate(CSIZE/2 + _off.x, CSIZE/2 + _off.y);
+      ctx.rotate(rot);
+      ctx.scale(zoom, zoom);
+      const s = Math.min(CSIZE/_img.naturalWidth, CSIZE/_img.naturalHeight);
+      ctx.drawImage(_img, -_img.naturalWidth*s/2, -_img.naturalHeight*s/2, _img.naturalWidth*s, _img.naturalHeight*s);
+      ctx.restore();
+    }
+
+    function confirmCrop() {
+      const src = document.getElementById('crop-canvas');
+      const out = document.createElement('canvas');
+      out.width = out.height = CSIZE;
+      const ctx = out.getContext('2d');
+      ctx.beginPath(); ctx.arc(CSIZE/2,CSIZE/2,CSIZE/2,0,Math.PI*2); ctx.clip();
+      ctx.drawImage(src, 0, 0);
+      saveAvatar(out.toDataURL('image/jpeg', 0.88));
+      closeCrop();
+      refreshAllAvatars();
+      showToast('✓ Photo de profil mise à jour !', 'success');
+    }
+
+    // Drag & wheel on crop circle
+    const circle = document.getElementById('crop-circle');
+    circle.addEventListener('pointerdown', e => { _drag = {x: e.clientX - _off.x, y: e.clientY - _off.y}; circle.setPointerCapture(e.pointerId); });
+    circle.addEventListener('pointermove', e => { if (!_drag) return; _off.x = e.clientX - _drag.x; _off.y = e.clientY - _drag.y; drawCrop(); });
+    circle.addEventListener('pointerup', () => { _drag = null; });
+    circle.addEventListener('wheel', e => {
+      e.preventDefault();
+      const sl = document.getElementById('crop-zoom');
+      sl.value = Math.min(4, Math.max(1, parseFloat(sl.value) - e.deltaY * 0.005));
+      drawCrop();
+    }, {passive:false});
+
+    // File input
+    document.getElementById('avatar-file-input').addEventListener('change', function() {
+      if (this.files && this.files[0]) { openCrop(this.files[0]); this.value = ''; }
+    });
+    function triggerUpload() { document.getElementById('avatar-file-input').click(); }
+
+    function removeAvatarAction() {
+      deleteAvatar();
+      refreshAllAvatars();
+      showToast('Photo supprimée', 'success');
+    }
+
+    // ── Render profile page ───────────────────────────────────────
+    function renderProfile() {
+      const events = getAllEvents();
+      const savedEvents = events.filter(e => user.saved && user.saved.includes(e.id));
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="profile-header">
+          <!-- AVATAR — header -->
+          <div class="avatar-wrap" id="aw-header" onclick="triggerUpload()" title="Changer la photo de profil">
+            <div class="avatar-overlay">
+              <div class="cam">📷</div>
+              <span>Modifier</span>
+            </div>
+            <div class="remove-photo-btn" title="Supprimer la photo" onclick="event.stopPropagation();removeAvatarAction()">✕</div>
+          </div>
+
+          <div class="profile-info">
+            <h2>${user.name}</h2>
+            <p>${user.email}</p>
+            ${user.city ? `<p style="color:var(--text3);font-size:14px">📍 ${user.city}</p>` : ''}
+            <span class="profile-badge">${user.role === 'admin' ? '⚙️ ADMIN' : '⭐ MEMBRE'}</span>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">Membre depuis</div>
+            <div style="font-weight:700">${formatDate(user.joined)}</div>
+          </div>
+        </div>
+
+        <div class="profile-tabs">
+          <button class="tab-btn active" onclick="switchTab('saved',this)">♡ Favoris (${savedEvents.length})</button>
+          <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ Paramètres</button>
+          ${user.role === 'admin' ? '<button class="tab-btn" onclick="window.location.href=\'admin/dashboard.html\'">🛡 Admin Panel</button>' : ''}
+        </div>
+
+        <!-- TAB: Favoris -->
+        <div class="tab-content active" id="tab-saved">
+          ${savedEvents.length === 0
+            ? '<div class="empty-state"><div class="empty-icon">💔</div><h3>Aucun favori pour l\'instant</h3><p>Explore les <a href="events.html" style="color:var(--accent)">événements</a> et sauvegarde ceux qui t\'intéressent !</p></div>'
+            : `<div class="saved-events">${savedEvents.map(renderEventCard).join('')}</div>`}
+        </div>
+
+        <!-- TAB: Paramètres -->
+        <div class="tab-content" id="tab-settings">
+          <div style="max-width:620px">
+
+            <!-- Photo section -->
+            <h3 style="font-weight:700;margin-bottom:18px">Photo de profil</h3>
+            <div style="display:flex;align-items:center;gap:24px;padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:36px">
+              <div class="avatar-wrap" id="aw-settings" onclick="triggerUpload()" title="Changer la photo" style="width:80px;height:80px">
+                <div class="avatar-overlay"><div class="cam" style="font-size:18px">📷</div></div>
+                <div class="remove-photo-btn" style="width:22px;height:22px;font-size:11px" onclick="event.stopPropagation();removeAvatarAction()">✕</div>
+              </div>
+              <div>
+                <p style="font-weight:600;margin-bottom:6px">Changer l'image</p>
+                <p style="font-size:13px;color:var(--text3);margin-bottom:14px">JPG, PNG ou WEBP — recadrage, zoom & rotation intégrés</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button class="btn-primary" onclick="triggerUpload()" style="padding:9px 18px;font-size:13px">📷 Choisir une photo</button>
+                  <button class="btn-outline" onclick="removeAvatarAction()" style="padding:9px 18px;font-size:13px">🗑 Supprimer</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Info section -->
+            <h3 style="font-weight:700;margin-bottom:18px">Informations personnelles</h3>
+            <div class="form-success" id="profile-success" style="display:none">✓ Profil mis à jour !</div>
+            <div class="profile-form-grid">
+              <div class="form-group">
+                <label>Prénom</label>
+                <input type="text" id="edit-fname" value="${user.name ? user.name.split(' ')[0] : ''}"/>
+              </div>
+              <div class="form-group">
+                <label>Nom</label>
+                <input type="text" id="edit-lname" value="${user.name ? user.name.split(' ').slice(1).join(' ') : ''}"/>
+              </div>
+              <div class="form-group span2">
+                <label>Email</label>
+                <input type="email" id="edit-email" value="${user.email}"/>
+              </div>
+              <div class="form-group">
+                <label>Ville</label>
+                <input type="text" id="edit-city" value="${user.city || ''}"/>
+              </div>
+              <div class="form-group">
+                <label>Nouveau mot de passe</label>
+                <input type="password" id="edit-pass" placeholder="Laisser vide pour ne pas changer"/>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="saveProfile()" style="margin-top:8px">Enregistrer les modifications</button>
+
+            <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border)">
+              <h3 style="font-weight:700;margin-bottom:8px;color:var(--accent)">Zone de danger</h3>
+              <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Ces actions sont irréversibles.</p>
+              <button class="btn-danger" onclick="deleteAccount()">Supprimer mon compte</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Inject avatars
+      refreshAllAvatars();
+    }
+
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+      if (name === 'settings') refreshWrap('aw-settings', 80);
+    }
+
+    function saveProfile() {
+      const fname = document.getElementById('edit-fname').value.trim();
+      const lname = document.getElementById('edit-lname').value.trim();
+      const email = document.getElementById('edit-email').value.trim();
+      const city  = document.getElementById('edit-city').value.trim();
+      const pass  = document.getElementById('edit-pass').value;
+
+      user.name = fname + ' ' + lname;
+      user.email = email;
+      user.city  = city;
+      localStorage.setItem('vz_current_user', JSON.stringify(user));
+
+      if (pass) {
+        const reg = JSON.parse(localStorage.getItem('vz_registered') || '[]');
+        const idx = reg.findIndex(u => u.id === user.id);
+        if (idx !== -1) { reg[idx].password = pass; localStorage.setItem('vz_registered', JSON.stringify(reg)); }
+      }
+
+      const s = document.getElementById('profile-success');
+      s.style.display = 'block';
+      setTimeout(() => s.style.display = 'none', 3000);
+      showToast('✓ Profil mis à jour !', 'success');
+    }
+
+    function deleteAccount() {
+      if (confirm('Supprimer définitivement ton compte ? Cette action est irréversible.')) {
+        localStorage.removeItem('vz_current_user');
+        localStorage.removeItem(avatarKey());
+        const reg = JSON.parse(localStorage.getItem('vz_registered') || '[]');
+        localStorage.setItem('vz_registered', JSON.stringify(reg.filter(u => u.id !== user.id)));
+        window.location.href = 'index.html';
+      }
+    }
+
+    renderProfile();
+  </script>
+</body>
+</html>

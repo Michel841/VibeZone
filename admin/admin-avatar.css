@@ -1,0 +1,88 @@
+/* ── Admin Avatar styles (included in admin pages) ── */
+
+.admin-user-card {
+  margin: auto 0 0;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+.admin-user-card:hover { background: rgba(255,255,255,0.04); }
+
+.admin-avatar-wrap {
+  position: relative;
+  width: 42px; height: 42px;
+  flex-shrink: 0;
+}
+.admin-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  border: 2px solid var(--border);
+  transition: border-color 0.2s;
+  user-select: none;
+  cursor: pointer;
+}
+.admin-user-card:hover .admin-avatar { border-color: var(--accent); }
+
+.admin-avatar-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  font-size: 14px;
+}
+.admin-user-card:hover .admin-avatar-overlay { opacity: 1; }
+
+.admin-user-info { flex: 1; min-width: 0; }
+.admin-user-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-user-role { font-size: 10px; font-family: var(--font-mono); color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* Crop modal */
+.admin-crop-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(14px);
+  z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.admin-crop-overlay.open { opacity: 1; pointer-events: all; }
+.admin-crop-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px;
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  transform: scale(.95); transition: transform .25s;
+}
+.admin-crop-overlay.open .admin-crop-box { transform: scale(1); }
+.admin-crop-box h3 { font-family: var(--font-display); font-size: 28px; letter-spacing:1px; align-self: flex-start; color: var(--text); }
+.admin-crop-circle {
+  width: 240px; height: 240px; border-radius: 50%;
+  overflow: hidden; border: 3px solid var(--accent);
+  box-shadow: 0 0 0 5px rgba(255,77,77,.15);
+  cursor: move; touch-action: none; position: relative;
+}
+#admin-crop-canvas { display: block; }
+.admin-crop-controls { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.admin-ctrl-row { display: flex; align-items: center; gap: 12px; }
+.admin-ctrl-row label { font-size: 12px; font-family: var(--font-mono); color: var(--text3); width: 52px; text-transform: uppercase; }
+.admin-ctrl-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+.admin-crop-actions { display: flex; gap: 12px; width: 100%; }
+.admin-crop-actions button { flex:1; padding:13px; border-radius:12px; font-size:14px; font-weight:700; font-family: var(--font-body); cursor:pointer; border:none; transition:.2s; }
+.ac-cancel { background: var(--surface2); color: var(--text2); }
+.ac-cancel:hover { background: var(--border); }
+.ac-confirm { background: var(--accent); color: #fff; }
+.ac-confirm:hover { background: #e02222; }

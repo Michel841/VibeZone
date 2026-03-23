@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Admin — VibeZone</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="admin-avatar.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="admin-body">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">VIBE<span>ZONE</span><small>ADMIN PANEL</small></div>
+    <nav class="admin-nav">
+      <div class="nav-section">Principal</div>
+      <a href="dashboard.html" class="active"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="events-admin.html"><span class="nav-icon">🎫</span> Événements</a>
+      <a href="users-admin.html"><span class="nav-icon">👥</span> Utilisateurs</a>
+      <div class="nav-section">Contenus</div>
+      <a href="add-event.html"><span class="nav-icon">➕</span> Ajouter un événement</a>
+       <a href="news-admin.html" class="active"><span class="nav-icon">📰</span> Actualités</a>
+       <a href="admin-messages.html"><span class="nav-icon">💬</span> Messages</a>
+      <div class="nav-section">Compte</div>
+      <a href="../index.html"><span class="nav-icon">🌐</span> Voir le site</a>
+      <a href="#" onclick="adminLogout()"><span class="nav-icon">🚪</span> Déconnexion</a>
+    </nav>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="admin-content">
+    <div class="admin-topbar">
+      <div>
+        <h1>DASHBOARD</h1>
+        <div class="admin-breadcrumb">Bienvenue, <span id="admin-name">Admin</span> 👋</div>
+      </div>
+      <a href="add-event.html" class="btn-primary">+ Nouvel événement</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <!-- Recent Events -->
+    <div class="admin-table-card">
+      <div class="table-header">
+        <h3>Derniers événements</h3>
+        <a href="events-admin.html" class="btn-sm btn-sm-view">Tout voir</a>
+      </div>
+      <table id="recent-events-table">
+        <thead>
+          <tr>
+            <th>Événement</th>
+            <th>Catégorie</th>
+            <th>Date</th>
+            <th>Prix</th>
+            <th>Inscrits</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recent-events-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="admin-table-card">
+      <div class="table-header">
+        <h3>Derniers membres</h3>
+        <a href="users-admin.html" class="btn-sm btn-sm-view">Tout voir</a>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Inscription</th><th>Statut</th></tr>
+        </thead>
+        <tbody id="recent-users-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="../js/data.js"></script>
+  <script src="admin-avatar.js"></script>
+  <script>
+    // Auth guard
+    const user = getCurrentUser();
+    if (!user || user.role !== 'admin') window.location.href = 'login.html';
+    else document.getElementById('admin-name').textContent = user.name;
+
+    function adminLogout() { logout(); window.location.href = '../index.html'; }
+
+    const events = getAllEvents();
+    const users = getAllUsers();
+    const regUsers = JSON.parse(localStorage.getItem('vz_registered') || '[]');
+    const allUsers = [...users, ...regUsers.filter(r => !users.find(u => u.id === r.id))];
+
+    // Stats
+    const totalRegistered = events.reduce((s, e) => s + e.registered, 0);
+    const statsGrid = document.getElementById('stats-grid');
+    statsGrid.innerHTML = `
+      <div class="stat-card" style="--c:var(--accent)">
+        <div class="stat-icon">🎫</div>
+        <div class="stat-val">${events.length}</div>
+        <div class="stat-lbl">Événements actifs</div>
+        <div class="stat-change">↑ +3 ce mois</div>
+      </div>
+      <div class="stat-card" style="--c:var(--blue)">
+        <div class="stat-icon">👥</div>
+        <div class="stat-val">${allUsers.length}</div>
+        <div class="stat-lbl">Membres total</div>
+        <div class="stat-change">↑ +12 ce mois</div>
+      </div>
+      <div class="stat-card" style="--c:var(--accent2)">
+        <div class="stat-icon">🎟</div>
+        <div class="stat-val">${totalRegistered.toLocaleString()}</div>
+        <div class="stat-lbl">Réservations</div>
+        <div class="stat-change">↑ +8% cette semaine</div>
+      </div>
+      <div class="stat-card" style="--c:var(--green)">
+        <div class="stat-icon">💰</div>
+        <div class="stat-val">${events.filter(e => e.price > 0).reduce((s,e) => s + e.price * e.registered, 0).toLocaleString()}€</div>
+        <div class="stat-lbl">Revenus estimés</div>
+        <div class="stat-change">↑ Excellent mois !</div>
+      </div>
+    `;
+
+    // Recent events
+    const tbody = document.getElementById('recent-events-body');
+    events.slice(0,6).forEach(ev => {
+      tbody.innerHTML += `
+        <tr>
+          <td><strong>${ev.emoji} ${ev.title}</strong></td>
+          <td><span class="badge badge-${ev.category}">${getCategoryLabel(ev.category)}</span></td>
+          <td style="font-family:var(--font-mono);font-size:12px">${formatDate(ev.date)}</td>
+          <td>${ev.price === 0 ? '<span style="color:var(--green);font-weight:700">Gratuit</span>' : ev.price + '€'}</td>
+          <td style="font-family:var(--font-mono)">${ev.registered}/${ev.capacity}</td>
+          <td><span class="badge badge-active">Actif</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-sm btn-sm-edit" onclick="window.location.href='add-event.html?edit=${ev.id}'">Éditer</button>
+              <button class="btn-sm btn-sm-del" onclick="deleteEvent(${ev.id})">Suppr.</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    // Recent users
+    const ubody = document.getElementById('recent-users-body');
+    allUsers.slice(0,5).forEach(u => {
+      ubody.innerHTML += `
+        <tr>
+          <td><strong>${u.name}</strong></td>
+          <td style="color:var(--text2);font-size:13px">${u.email}</td>
+          <td><span class="badge ${u.role === 'admin' ? 'badge-concert' : 'badge-active'}">${u.role}</span></td>
+          <td style="font-family:var(--font-mono);font-size:12px">${formatDate(u.joined)}</td>
+          <td><span class="badge ${u.status === 'active' ? 'badge-active' : 'badge-inactive'}">${u.status || 'active'}</span></td>
+        </tr>
+      `;
+    });
+
+    function deleteEvent(id) {
+      if (confirm('Supprimer cet événement ?')) {
+        const evs = getAllEvents().filter(e => e.id !== id);
+        saveEvents(evs);
+        showToast('Événement supprimé', 'success');
+        setTimeout(() => location.reload(), 800);
+      }
+    }
+  </script>
+</body>
+</html>

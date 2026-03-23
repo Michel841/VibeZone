@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messages — VibeZone</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { overflow: hidden; }
+    .msg-layout { display:flex; height:100vh; padding-top:70px; }
+
+    /* Sidebar */
+    .conv-sidebar { width:300px; min-width:300px; border-right:1px solid var(--border); display:flex; flex-direction:column; background:var(--bg2); }
+    .csb-head { padding:20px 16px 12px; border-bottom:1px solid var(--border); }
+    .csb-head h2 { font-family:var(--font-display); font-size:26px; letter-spacing:1px; margin-bottom:10px; }
+    .msg-search { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:50px; padding:9px 16px; color:var(--text); font-size:13px; font-family:var(--font-body); outline:none; }
+    .msg-search:focus { border-color:var(--accent); }
+    .msg-search::placeholder { color:var(--text3); }
+
+    .conv-tabs { display:flex; border-bottom:1px solid var(--border); }
+    .ctab { flex:1; padding:11px 8px; background:none; border:none; color:var(--text2); font-size:12px; font-family:var(--font-body); font-weight:600; cursor:pointer; border-bottom:2px solid transparent; transition:.2s; }
+    .ctab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .ctab:hover { color:var(--text); }
+    .ubadge { display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:#fff; font-size:9px; font-weight:700; min-width:16px; height:16px; border-radius:50px; padding:0 3px; margin-left:4px; font-family:var(--font-mono); }
+
+    .conv-list { flex:1; overflow-y:auto; }
+    .conv-item { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.04); transition:background .15s; }
+    .conv-item:hover { background:rgba(255,255,255,.04); }
+    .conv-item.active { background:rgba(255,77,77,.08); border-left:3px solid var(--accent); }
+    .conv-item.unread .ci-name { color:var(--text); font-weight:700; }
+    .ci-av { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent3)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:15px; color:#fff; flex-shrink:0; overflow:hidden; }
+    .ci-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .ci-meta { flex:1; min-width:0; }
+    .ci-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text2); }
+    .ci-preview { font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+    .ci-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
+    .ci-time { font-size:10px; color:var(--text3); font-family:var(--font-mono); }
+    .ci-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); }
+    .upill { min-width:17px; height:17px; background:var(--accent); border-radius:50px; font-size:9px; font-weight:700; color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); padding:0 3px; }
+
+    .new-btn-wrap { padding:10px 12px; border-top:1px solid var(--border); }
+
+    /* Chat */
+    .chat-area { flex:1; display:flex; flex-direction:column; background:var(--bg); min-width:0; }
+    .chat-hd { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:var(--bg2); }
+    .chat-hd-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent3)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:14px; color:#fff; flex-shrink:0; overflow:hidden; }
+    .chat-hd-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .chat-hd-name { font-weight:700; font-size:15px; }
+    .chat-hd-status { font-size:11px; color:var(--green); font-family:var(--font-mono); }
+    .chat-msgs { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:10px; }
+    .msg-grp { display:flex; flex-direction:column; gap:3px; }
+    .msg-grp.mine { align-items:flex-end; }
+    .msg-grp.theirs { align-items:flex-start; }
+    .msg-sname { font-size:10px; color:var(--text3); font-family:var(--font-mono); padding:0 10px; margin-bottom:1px; }
+    .msg-bbl { max-width:65%; padding:9px 14px; border-radius:18px; font-size:14px; line-height:1.5; word-break:break-word; }
+    .msg-grp.mine .msg-bbl { background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+    .msg-grp.theirs .msg-bbl { background:var(--surface); color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; }
+    .msg-ts { font-size:10px; color:var(--text3); font-family:var(--font-mono); padding:0 10px; }
+    .msg-dsep { text-align:center; font-size:10px; color:var(--text3); font-family:var(--font-mono); margin:6px 0; display:flex; align-items:center; gap:10px; }
+    .msg-dsep::before,.msg-dsep::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    .chat-inp-area { padding:12px 20px; border-top:1px solid var(--border); background:var(--bg2); display:flex; gap:10px; align-items:flex-end; }
+    .chat-inp { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:22px; padding:10px 18px; color:var(--text); font-size:14px; font-family:var(--font-body); outline:none; resize:none; max-height:110px; transition:.2s; line-height:1.5; }
+    .chat-inp:focus { border-color:var(--accent); }
+    .chat-inp::placeholder { color:var(--text3); }
+    .send-btn { width:42px; height:42px; border-radius:50%; background:var(--accent); border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:.2s; flex-shrink:0; }
+    .send-btn:hover { background:#e02222; transform:scale(1.06); }
+
+    /* BC card */
+    .bc-item { display:flex; align-items:flex-start; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.04); transition:background .15s; }
+    .bc-item:hover { background:rgba(255,255,255,.04); }
+    .bc-item.active { background:rgba(175,82,222,.08); border-left:3px solid var(--accent3); }
+    .bc-item.unread-bc .bc-sub { font-weight:700; color:var(--text); }
+    .bc-icon { font-size:26px; flex-shrink:0; margin-top:2px; }
+    .bc-m { flex:1; min-width:0; }
+    .bc-sub { font-size:13px; font-weight:600; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bc-prev { font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+    .bc-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
+    .bc-t { font-size:10px; color:var(--text3); font-family:var(--font-mono); }
+
+    /* BC detail */
+    .bc-detail { flex:1; padding:32px; overflow-y:auto; }
+    .bc-detail-title { font-family:var(--font-display); font-size:40px; letter-spacing:1px; margin-bottom:8px; }
+    .bc-detail-from { font-size:13px; color:var(--text3); font-family:var(--font-mono); margin-bottom:28px; }
+    .bc-detail-body { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px; font-size:15px; line-height:1.8; color:var(--text2); white-space:pre-wrap; }
+
+    /* Empty */
+    .chat-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:var(--text3); }
+    .chat-empty .ce-ico { font-size:64px; }
+    .chat-empty h3 { font-family:var(--font-display); font-size:30px; color:var(--text2); letter-spacing:1px; }
+    .chat-empty p { font-size:14px; max-width:280px; text-align:center; line-height:1.6; }
+
+    /* New conv modal */
+    .ncm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.82); backdrop-filter:blur(12px); z-index:3000; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .ncm-overlay.open { opacity:1; pointer-events:all; }
+    .ncm-box { background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:28px; width:100%; max-width:460px; transform:translateY(16px); transition:transform .2s; }
+    .ncm-overlay.open .ncm-box { transform:translateY(0); }
+    .ncm-box h3 { font-family:var(--font-display); font-size:28px; letter-spacing:1px; margin-bottom:16px; }
+    .mpk-list { max-height:260px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm); margin-top:10px; }
+    .mpk-item { display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,.04); transition:background .15s; }
+    .mpk-item:hover { background:rgba(255,255,255,.05); }
+    .mpk-item:last-child { border-bottom:none; }
+    .mpk-av { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent3)); display:flex; align-items:center; justify-content:center; font-size:12px; font-family:var(--font-display); color:#fff; flex-shrink:0; overflow:hidden; }
+    .mpk-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .mpk-n { font-weight:600; font-size:13px; }
+    .mpk-e { font-size:11px; color:var(--text3); }
+
+    @media(max-width:700px){
+      .conv-sidebar { position:fixed; z-index:20; top:70px; left:0; bottom:0; transform:translateX(-100%); transition:transform .25s; }
+      .conv-sidebar.mob-open { transform:translateX(0); }
+      .chat-area { width:100%; }
+      .mob-back { display:flex !important; }
+    }
+    .mob-back { display:none; background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; padding:4px 8px; }
+  </style>
+</head>
+<body>
+  <nav id="navbar">
+    <a href="index.html" class="logo">VIBE<span>ZONE</span></a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="events.html">Événements</a>
+      <a href="activities.html">Activités</a>
+      <a href="news.html">Actualités</a>
+      <a href="messages.html" class="active">Messages <span id="nav-unread" style="display:none" class="ubadge">0</span></a>
+      <a href="profile.html" id="nav-profile" style="display:none">Mon Profil</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-outline" id="btn-login">Connexion</a>
+      <button class="btn-primary" id="btn-logout" style="display:none" onclick="logout()">Déconnexion</button>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </nav>
+
+  <div class="msg-layout">
+    <!-- SIDEBAR -->
+    <aside class="conv-sidebar" id="conv-sidebar">
+      <div class="csb-head">
+        <h2>💬 MESSAGES</h2>
+        <input class="msg-search" id="conv-search" placeholder="🔍 Rechercher…" oninput="renderList()"/>
+      </div>
+      <div class="conv-tabs">
+        <button class="ctab active" onclick="switchTab('convs',this)">Conversations <span class="ubadge" id="badge-c" style="display:none">0</span></button>
+        <button class="ctab" onclick="switchTab('bcs',this)">Diffusions <span class="ubadge" id="badge-b" style="display:none">0</span></button>
+      </div>
+      <div class="conv-list" id="conv-list"></div>
+      <div class="new-btn-wrap">
+        <button class="btn-primary" style="width:100%;padding:11px" onclick="openNCM()">✏️ Nouveau message</button>
+      </div>
+    </aside>
+
+    <!-- CHAT AREA -->
+    <main class="chat-area" id="chat-area">
+      <div class="chat-empty">
+        <div class="ce-ico">💬</div>
+        <h3>TES MESSAGES</h3>
+        <p>Sélectionne une conversation ou démarre un nouveau message.</p>
+        <button class="btn-primary" onclick="openNCM()" style="margin-top:8px;padding:12px 28px">✏️ Démarrer</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- New conv modal -->
+  <div class="ncm-overlay" id="ncm">
+    <div class="ncm-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3>Nouveau message</h3>
+        <button onclick="closeNCM()" style="background:var(--surface2);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>
+      </div>
+      <input class="msg-search" id="mpk-search" placeholder="🔍 Rechercher un membre…" oninput="filterMpk()"/>
+      <div class="mpk-list" id="mpk-list"></div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/messaging.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const me = getCurrentUser();
+    if (!me) window.location.href = 'login.html';
+
+    let activeCid = null;
+    let activeBid = null;
+    let curTab    = 'convs';
+    let pollTimer = null;
+
+    // ── Utilities ────────────────────────────────────────────────
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+    function avHTML(u, sz){
+      sz = sz || 42;
+      const url = localStorage.getItem('vz_avatar_'+u.id);
+      if(url) return `<img src="${url}" style="width:${sz}px;height:${sz}px;object-fit:cover;border-radius:50%;display:block"/>`;
+      const ini = u.name ? u.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) : '?';
+      return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:${Math.round(sz*.34)}px;color:#fff;flex-shrink:0">${ini}</div>`;
+    }
+
+    function updateNavBadge(){
+      const n = getUnreadCount(me.id);
+      const el = document.getElementById('nav-unread');
+      if(el){ el.textContent=n; el.style.display=n>0?'inline-flex':'none'; }
+    }
+
+    // ── Sidebar render ───────────────────────────────────────────
+    function renderList(){
+      const q = (document.getElementById('conv-search').value||'').toLowerCase();
+      const list = document.getElementById('conv-list');
+
+      if(curTab==='convs'){
+        const convs = getMyConversations(me.id);
+        const filtered = convs.filter(c=>{
+          const oid = c.participants.find(p=>p!==me.id);
+          const nm  = (c.participantNames&&c.participantNames[oid])||'';
+          return !q||nm.toLowerCase().includes(q);
+        });
+
+        const totalU = convs.reduce((s,c)=>s+c.messages.filter(m=>m.senderId!==me.id&&!m.read.includes(me.id)).length,0);
+        const bc_el  = document.getElementById('badge-c');
+        bc_el.textContent=totalU; bc_el.style.display=totalU>0?'inline-flex':'none';
+
+        if(!filtered.length){ list.innerHTML=`<div style="text-align:center;padding:36px 16px;color:var(--text3);font-size:13px">Aucune conversation<br><br><button class="btn-primary" onclick="openNCM()" style="padding:9px 18px;font-size:12px">Démarrer</button></div>`; return; }
+
+        list.innerHTML = filtered.map(c=>{
+          const oid   = c.participants.find(p=>p!==me.id);
+          const other = getUserById(oid)||{id:oid,name:c.participantNames?.[oid]||'Membre',role:'user'};
+          const last  = c.messages[c.messages.length-1];
+          const u     = c.messages.filter(m=>m.senderId!==me.id&&!m.read.includes(me.id)).length;
+          return `<div class="conv-item ${u?'unread':''} ${activeCid===c.id?'active':''}" onclick="openConv('${c.id}')">
+            <div class="ci-av">${avHTML(other,42)}</div>
+            <div class="ci-meta">
+              <div class="ci-name">${other.name}</div>
+              <div class="ci-preview">${last?(last.senderId===me.id?'Vous : ':'')+last.text:'Aucun message'}</div>
+            </div>
+            <div class="ci-right">
+              <div class="ci-time">${last?timeAgo(last.ts):''}</div>
+              ${u?`<div class="upill">${u}</div>`:''}
+            </div>
+          </div>`;
+        }).join('');
+
+      } else {
+        const bcs    = getBroadcasts();
+        const readIds= JSON.parse(localStorage.getItem('vz_read_broadcasts_'+me.id)||'[]');
+        const filtered= bcs.filter(b=>!q||b.subject.toLowerCase().includes(q)||b.text.toLowerCase().includes(q));
+        const totalU  = bcs.filter(b=>!readIds.includes(b.id)).length;
+        const bb      = document.getElementById('badge-b');
+        bb.textContent=totalU; bb.style.display=totalU>0?'inline-flex':'none';
+
+        if(!filtered.length){ list.innerHTML=`<div style="text-align:center;padding:36px 16px;color:var(--text3);font-size:13px">Aucun message de diffusion.</div>`; return; }
+        list.innerHTML = filtered.map(b=>{
+          const isR = readIds.includes(b.id);
+          return `<div class="bc-item ${!isR?'unread-bc':''} ${activeBid===b.id?'active':''}" onclick="openBC(${b.id})">
+            <div class="bc-icon">📢</div>
+            <div class="bc-m">
+              <div class="bc-sub">${esc(b.subject)}</div>
+              <div class="bc-prev">${esc(b.text.slice(0,55))}${b.text.length>55?'…':''}</div>
+            </div>
+            <div class="bc-right">
+              <div class="bc-t">${timeAgo(b.ts)}</div>
+              ${!isR?'<div class="ci-dot"></div>':''}
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    function switchTab(t, btn){
+      curTab = t;
+      document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderList();
+    }
+
+    // ── Open 1-to-1 conversation ─────────────────────────────────
+    function openConv(cid){
+      activeCid = cid; activeBid = null;
+      const conv = getConversations().find(c=>c.id===cid);
+      if(!conv) return;
+      const oid   = conv.participants.find(p=>p!==me.id);
+      const other = getUserById(oid)||{id:oid,name:conv.participantNames?.[oid]||'Membre',role:'user'};
+      markConvRead(me.id, oid, me.id);
+      renderList(); updateNavBadge();
+
+      document.getElementById('chat-area').innerHTML=`
+        <div class="chat-hd">
+          <button class="mob-back" onclick="document.getElementById('conv-sidebar').classList.toggle('mob-open')">☰</button>
+          <div class="chat-hd-av">${avHTML(other,40)}</div>
+          <div style="flex:1">
+            <div class="chat-hd-name">${other.name}</div>
+            <div class="chat-hd-status">● En ligne</div>
+          </div>
+        </div>
+        <div class="chat-msgs" id="chat-msgs"></div>
+        <div class="chat-inp-area">
+          <textarea class="chat-inp" id="msg-inp" placeholder="Écris un message…" rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doSend('${cid}',${oid})}"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea>
+          <button class="send-btn" onclick="doSend('${cid}',${oid})">➤</button>
+        </div>`;
+      renderMsgs(cid);
+      document.getElementById('msg-inp').focus();
+      clearInterval(pollTimer);
+      pollTimer = setInterval(()=>{ renderMsgs(cid); renderList(); updateNavBadge(); }, 2000);
+    }
+
+    function renderMsgs_REPLACED(cid){ /* replaced below */ }
+
+    function doSend(cid, oid){
+      const inp = document.getElementById('msg-inp');
+      const txt = (inp.value||'').trim();
+      if(!txt) return;
+      const other = getUserById(oid);
+      if(!other) return;
+      sendMessage(me, other, txt);
+      inp.value=''; inp.style.height='auto';
+      renderMsgs(cid); renderList(); updateNavBadge();
+    }
+
+    // ── Open broadcast detail ────────────────────────────────────
+    function openBC(id){
+      activeBid=id; activeCid=null;
+      const bc = getBroadcasts().find(b=>b.id===id);
+      if(!bc) return;
+      markBroadcastRead(id, me.id);
+      renderList(); updateNavBadge();
+      clearInterval(pollTimer);
+      document.getElementById('chat-area').innerHTML=`
+        <div class="chat-hd">
+          <button class="mob-back" onclick="document.getElementById('conv-sidebar').classList.toggle('mob-open')">☰</button>
+          <div style="font-size:28px">📢</div>
+          <div style="flex:1">
+            <div class="chat-hd-name">${esc(bc.subject)}</div>
+            <div style="font-size:11px;color:var(--accent3);font-family:var(--font-mono)">Diffusion — ${bc.senderName}</div>
+          </div>
+        </div>
+        <div class="bc-detail">
+          <div class="bc-detail-title">${esc(bc.subject)}</div>
+          <div class="bc-detail-from">📢 De ${bc.senderName} · ${timeAgo(bc.ts)}</div>
+          <div class="bc-detail-body">${esc(bc.text)}</div>
+        </div>`;
+    }
+
+    // ── New conversation modal ───────────────────────────────────
+    function openNCM(){ document.getElementById('ncm').classList.add('open'); filterMpk(); }
+    function closeNCM(){ document.getElementById('ncm').classList.remove('open'); }
+    function filterMpk(){
+      const q = (document.getElementById('mpk-search').value||'').toLowerCase();
+      const members = getAllMembers().filter(u=>u.id!==me.id&&(!q||u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)));
+      const list = document.getElementById('mpk-list');
+      if(!members.length){ list.innerHTML=`<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Aucun membre trouvé</div>`; return; }
+      list.innerHTML = members.map(u=>`
+        <div class="mpk-item" onclick="startWith(${u.id})">
+          <div class="mpk-av">${avHTML(u,34)}</div>
+          <div><div class="mpk-n">${u.name}</div><div class="mpk-e">${u.email}</div></div>
+        </div>`).join('');
+    }
+    function startWith(uid){
+      const other = getUserById(uid);
+      if(!other) return;
+      const convs = getConversations();
+      const cid   = getConvId(me.id, uid);
+      if(!convs.find(c=>c.id===cid)){
+        convs.push({id:cid,participants:[me.id,uid],participantNames:{[me.id]:me.name,[uid]:other.name},messages:[]});
+        saveConversations(convs);
+      }
+      closeNCM();
+      switchTabByName('convs');
+      openConv(cid);
+      renderList();
+    }
+    function switchTabByName(t){
+      curTab=t;
+      document.querySelectorAll('.ctab').forEach((b,i)=>{b.classList.remove('active'); if((i===0&&t==='convs')||(i===1&&t==='bcs')) b.classList.add('active');});
+    }
+
+    // ── URL param ─────────────────────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('with')) setTimeout(()=>startWith(parseInt(params.get('with'))),80);
+
+    // ── Improve renderMsgs to group consecutive messages & show full history ──
+    function renderMsgs(cid){
+      const conv = getConversations().find(c=>c.id===cid);
+      if(!conv) return;
+      const box = document.getElementById('chat-msgs');
+      if(!box) return;
+      const atBot = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+
+      if(!conv.messages.length){
+        box.innerHTML=`<div class="chat-empty" style="flex:1"><div class="ce-ico" style="font-size:48px">👋</div><p style="font-size:14px">Aucun message encore.<br>Dis bonjour !</p></div>`;
+        return;
+      }
+
+      let html='', lastD='', lastSender=null, lastTs=0;
+      conv.messages.forEach((m, idx)=>{
+        const d = new Date(m.ts).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        if(d!==lastD){
+          if(lastSender!==null) html += `</div>`; // close prev group
+          html += `<div class="msg-dsep">${d}</div>`;
+          lastD=d; lastSender=null;
+        }
+        const mine = m.senderId === me.id;
+        const side = mine ? 'mine' : 'theirs';
+        const sameSender = lastSender === m.senderId && (m.id - lastTs) < 300000; // within 5min
+        if(!sameSender){
+          if(lastSender!==null) html += `</div>`;
+          html += `<div class="msg-grp ${side}">`;
+          if(!mine) html += `<div class="msg-sname">${esc(m.senderName)}</div>`;
+        }
+        html += `<div class="msg-bbl" title="${new Date(m.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}">${esc(m.text)}</div>`;
+        // Timestamp only on last message of a group or if next message is from someone else
+        const next = conv.messages[idx+1];
+        const isLastInGroup = !next || next.senderId !== m.senderId || (new Date(next.ts) - new Date(m.ts)) >= 300000;
+        if(isLastInGroup) html += `<div class="msg-ts">${timeAgo(m.ts)}</div>`;
+        lastSender = m.senderId;
+        lastTs = m.id;
+      });
+      html += `</div>`; // close last group
+
+      box.innerHTML = html;
+      if(atBot || box.scrollTop === 0) box.scrollTop = box.scrollHeight;
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    seedDemoData();          // inject demo conversations on first visit
+    renderList(); updateNavBadge();
+    setInterval(()=>{ renderList(); updateNavBadge(); }, 3000);
+  </script>
+</body>
+</html>

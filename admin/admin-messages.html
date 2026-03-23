@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messages Admin — VibeZone</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="admin-avatar.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    body{overflow:hidden}
+    .amsg-layout{display:flex;height:100vh;margin-left:260px}
+    .amsg-left{width:300px;min-width:300px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2)}
+    .amsg-lhead{padding:20px 16px 12px;border-bottom:1px solid var(--border)}
+    .amsg-lhead h2{font-family:var(--font-display);font-size:24px;letter-spacing:1px;margin-bottom:10px}
+    .ams-search{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:50px;padding:9px 16px;color:var(--text);font-size:13px;font-family:var(--font-body);outline:none}
+    .ams-search:focus{border-color:var(--accent)}
+    .ams-search::placeholder{color:var(--text3)}
+    .ams-tabs{display:flex;border-bottom:1px solid var(--border)}
+    .ams-tab{flex:1;padding:11px 6px;background:none;border:none;color:var(--text2);font-size:12px;font-family:var(--font-body);font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+    .ams-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .ubadge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:50px;padding:0 3px;margin-left:4px;font-family:var(--font-mono)}
+    .ams-list{flex:1;overflow-y:auto}
+    .ams-item{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+    .ams-item:hover{background:rgba(255,255,255,.04)}
+    .ams-item.active{background:rgba(255,77,77,.08);border-left:3px solid var(--accent)}
+    .ams-item.unread .ai-name{color:var(--text);font-weight:700}
+    .ai-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;color:#fff;flex-shrink:0;overflow:hidden}
+    .ai-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .ai-meta{flex:1;min-width:0}
+    .ai-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+    .ai-prev{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+    .ai-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+    .ai-time{font-size:10px;color:var(--text3);font-family:var(--font-mono)}
+    .upill{min-width:16px;height:16px;background:var(--accent);border-radius:50px;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);padding:0 3px}
+    .ams-btns{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+    .amsg-right{flex:1;display:flex;flex-direction:column;min-width:0}
+    .amsg-hd{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg2)}
+    .amsg-hd-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;color:#fff;flex-shrink:0;overflow:hidden}
+    .amsg-hd-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .amsg-hd-name{font-weight:700;font-size:15px}
+    .amsg-hd-sub{font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+    .amsg-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px}
+    .msg-grp{display:flex;flex-direction:column;gap:3px}
+    .msg-grp.mine{align-items:flex-end}
+    .msg-grp.theirs{align-items:flex-start}
+    .msg-sname{font-size:10px;color:var(--text3);font-family:var(--font-mono);padding:0 10px}
+    .msg-bbl{max-width:65%;padding:9px 14px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word}
+    .msg-grp.mine .msg-bbl{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+    .msg-grp.theirs .msg-bbl{background:var(--surface);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
+    .msg-ts{font-size:10px;color:var(--text3);font-family:var(--font-mono);padding:0 10px}
+    .msg-dsep{text-align:center;font-size:10px;color:var(--text3);font-family:var(--font-mono);margin:6px 0;display:flex;align-items:center;gap:10px}
+    .msg-dsep::before,.msg-dsep::after{content:'';flex:1;height:1px;background:var(--border)}
+    .amsg-inp-area{padding:12px 20px;border-top:1px solid var(--border);background:var(--bg2);display:flex;gap:10px;align-items:flex-end}
+    .amsg-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:22px;padding:10px 18px;color:var(--text);font-size:14px;font-family:var(--font-body);outline:none;resize:none;max-height:110px;transition:.2s;line-height:1.5}
+    .amsg-inp:focus{border-color:var(--accent)}
+    .amsg-inp::placeholder{color:var(--text3)}
+    .send-btn{width:42px;height:42px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+    .send-btn:hover{background:#e02222;transform:scale(1.06)}
+    .amsg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--text3)}
+    .amsg-empty .ce-ico{font-size:60px}
+    .amsg-empty h3{font-family:var(--font-display);font-size:28px;color:var(--text2);letter-spacing:1px}
+    .amsg-empty p{font-size:14px;max-width:280px;text-align:center;line-height:1.6}
+    .bc-panel{flex:1;padding:32px;overflow-y:auto}
+    .field{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:15px;font-family:var(--font-body);outline:none;transition:.2s;margin-top:6px}
+    .field:focus{border-color:var(--accent)}
+    .field::placeholder{color:var(--text3)}
+    .lbl{font-size:12px;font-weight:700;color:var(--text2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em}
+    .fg{margin-bottom:18px}
+  </style>
+</head>
+<body class="admin-body">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">VIBE<span>ZONE</span><small>ADMIN PANEL</small></div>
+    <nav class="admin-nav">
+      <div class="nav-section">Principal</div>
+      <a href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="events-admin.html"><span class="nav-icon">🎫</span> Événements</a>
+      <a href="users-admin.html"><span class="nav-icon">👥</span> Utilisateurs</a>
+      <div class="nav-section">Communication</div>
+      <a href="admin-messages.html" class="active"><span class="nav-icon">💬</span> Messages</a>
+      <a href="news-admin.html"><span class="nav-icon">📰</span> Actualités</a>
+      <div class="nav-section">Contenus</div>
+      <a href="add-event.html"><span class="nav-icon">➕</span> Ajouter un événement</a>
+      <div class="nav-section">Compte</div>
+      <a href="../index.html"><span class="nav-icon">🌐</span> Voir le site</a>
+      <a href="#" onclick="logout();window.location.href='../index.html'"><span class="nav-icon">🚪</span> Déconnexion</a>
+    </nav>
+  </aside>
+
+  <div class="amsg-layout">
+    <div class="amsg-left">
+      <div class="amsg-lhead">
+        <h2>💬 MESSAGES</h2>
+        <input class="ams-search" id="ams-search" placeholder="🔍 Rechercher…" oninput="renderAList()"/>
+      </div>
+      <div class="ams-tabs">
+        <button class="ams-tab active" onclick="switchATab('convs',this)">Membres <span class="ubadge" id="abadge-c" style="display:none">0</span></button>
+        <button class="ams-tab" onclick="switchATab('bcs',this)">Diffusions</button>
+      </div>
+      <div class="ams-list" id="ams-list"></div>
+      <div class="ams-btns">
+        <button class="btn-primary" style="width:100%;padding:10px;font-size:13px" onclick="openNewAConv()">✏️ Écrire à un membre</button>
+        <button style="width:100%;padding:10px;font-size:13px;border:2px solid var(--accent3);color:var(--accent3);background:none;border-radius:50px;cursor:pointer;font-family:var(--font-body);font-weight:700;transition:.2s" onmouseover="this.style.background='rgba(175,82,222,.1)'" onmouseout="this.style.background='none'" onclick="openBCSend()">📢 Message à tous</button>
+      </div>
+    </div>
+    <div class="amsg-right" id="amsg-right">
+      <div class="amsg-empty">
+        <div class="ce-ico">💬</div>
+        <h3>MESSAGES ADMIN</h3>
+        <p>Écris à un membre ou envoie un message à toute la communauté.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member picker overlay -->
+  <div id="ancm" style="position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px;width:100%;max-width:460px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-family:var(--font-display);font-size:26px;letter-spacing:1px">Écrire à un membre</div>
+        <button onclick="closeANCM()" style="background:var(--surface2);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>
+      </div>
+      <input class="ams-search" id="ancm-search" placeholder="🔍 Rechercher…" oninput="filterAMpk()"/>
+      <div id="ancm-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:10px"></div>
+    </div>
+  </div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/messaging.js"></script>
+  <script src="admin-avatar.js"></script>
+  <script>
+    const admin=getCurrentUser();
+    if(!admin||admin.role!=='admin') window.location.href='login.html';
+    let aActiveCid=null,aCurTab='convs',aPollTimer=null;
+    function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
+    function avHTML(u,sz){sz=sz||40;const url=localStorage.getItem('vz_avatar_'+u.id);if(url)return`<img src="${url}" style="width:${sz}px;height:${sz}px;object-fit:cover;border-radius:50%;display:block"/>`;const ini=u.name?u.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2):'?';return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:${Math.round(sz*.34)}px;color:#fff;flex-shrink:0">${ini}</div>`}
+
+    function renderAList(){
+      const q=(document.getElementById('ams-search').value||'').toLowerCase();
+      const list=document.getElementById('ams-list');
+      if(aCurTab==='convs'){
+        const convs=getMyConversations(admin.id);
+        const filtered=convs.filter(c=>{const oid=c.participants.find(p=>p!==admin.id);const nm=(c.participantNames&&c.participantNames[oid])||'';return !q||nm.toLowerCase().includes(q);});
+        const totalU=convs.reduce((s,c)=>s+c.messages.filter(m=>m.senderId!==admin.id&&!m.read.includes(admin.id)).length,0);
+        const bc=document.getElementById('abadge-c');bc.textContent=totalU;bc.style.display=totalU>0?'inline-flex':'none';
+        if(!filtered.length){list.innerHTML=`<div style="text-align:center;padding:36px 16px;color:var(--text3);font-size:13px">Aucune conversation.</div>`;return;}
+        list.innerHTML=filtered.map(c=>{
+          const oid=c.participants.find(p=>p!==admin.id);
+          const other=getUserById(oid)||{id:oid,name:c.participantNames?.[oid]||'Membre',role:'user'};
+          const last=c.messages[c.messages.length-1];
+          const u=c.messages.filter(m=>m.senderId!==admin.id&&!m.read.includes(admin.id)).length;
+          return`<div class="ams-item ${u?'unread':''} ${aActiveCid===c.id?'active':''}" onclick="openAConv('${c.id}')"><div class="ai-av">${avHTML(other,40)}</div><div class="ai-meta"><div class="ai-name">${other.name}</div><div class="ai-prev">${last?(last.senderId===admin.id?'Vous : ':'')+last.text:'Aucun message'}</div></div><div class="ai-right"><div class="ai-time">${last?timeAgo(last.ts):''}</div>${u?`<div class="upill">${u}</div>`:''}</div></div>`;
+        }).join('');
+      } else {
+        const bcs=getBroadcasts();
+        const filtered=bcs.filter(b=>!q||b.subject.toLowerCase().includes(q));
+        if(!filtered.length){list.innerHTML=`<div style="text-align:center;padding:36px 16px;color:var(--text3);font-size:13px">Aucune diffusion.</div>`;return;}
+        list.innerHTML=filtered.map(b=>`<div class="ams-item" onclick="viewBCSent(${b.id})"><div class="ai-av" style="font-size:18px;background:linear-gradient(135deg,var(--accent3),var(--blue))">📢</div><div class="ai-meta"><div class="ai-name">${esc(b.subject)}</div><div class="ai-prev">${esc(b.text.slice(0,50))}${b.text.length>50?'…':''}</div></div><div class="ai-right"><div class="ai-time">${timeAgo(b.ts)}</div><button onclick="event.stopPropagation();delBC(${b.id})" style="background:rgba(255,77,77,.12);border:none;color:var(--accent);font-size:10px;padding:2px 7px;border-radius:5px;cursor:pointer;font-family:var(--font-body)">✕</button></div></div>`).join('');
+      }
+    }
+
+    function switchATab(t,btn){aCurTab=t;document.querySelectorAll('.ams-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAList();}
+
+    function openAConv(cid){
+      aActiveCid=cid;
+      const conv=getConversations().find(c=>c.id===cid);if(!conv) return;
+      const oid=conv.participants.find(p=>p!==admin.id);
+      const other=getUserById(oid)||{id:oid,name:conv.participantNames?.[oid]||'Membre',role:'user'};
+      markConvRead(admin.id,oid,admin.id);renderAList();
+      document.getElementById('amsg-right').innerHTML=`<div class="amsg-hd"><div class="amsg-hd-av">${avHTML(other,40)}</div><div style="flex:1"><div class="amsg-hd-name">${other.name}</div><div class="amsg-hd-sub">${other.email||''}</div></div></div><div class="amsg-body" id="amsg-body"></div><div class="amsg-inp-area"><textarea class="amsg-inp" id="amsg-inp" placeholder="Écris un message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doASend('${cid}',${oid})}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea><button class="send-btn" onclick="doASend('${cid}',${oid})">➤</button></div>`;
+      renderAMsgs(cid);document.getElementById('amsg-inp').focus();
+      clearInterval(aPollTimer);aPollTimer=setInterval(()=>{renderAMsgs(cid);renderAList();},2000);
+    }
+
+    function renderAMsgs(cid){
+      const conv=getConversations().find(c=>c.id===cid);if(!conv) return;
+      const box=document.getElementById('amsg-body');if(!box) return;
+      const atBot=box.scrollHeight-box.scrollTop-box.clientHeight<60;
+      let html='',lastD='';
+      conv.messages.forEach(m=>{const d=new Date(m.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});if(d!==lastD){html+=`<div class="msg-dsep">${d}</div>`;lastD=d;}const mine=m.senderId===admin.id;html+=`<div class="msg-grp ${mine?'mine':'theirs'}">${!mine?`<div class="msg-sname">${m.senderName}</div>`:''}<div class="msg-bbl">${esc(m.text)}</div><div class="msg-ts">${timeAgo(m.ts)}</div></div>`;});
+      box.innerHTML=html||`<div style="text-align:center;padding:40px;color:var(--text3)">Aucun message — écris le premier !</div>`;
+      if(atBot) box.scrollTop=box.scrollHeight;
+    }
+
+    function doASend(cid,oid){const inp=document.getElementById('amsg-inp');const txt=(inp.value||'').trim();if(!txt) return;const other=getUserById(oid);if(!other) return;sendMessage(admin,other,txt);inp.value='';inp.style.height='auto';renderAMsgs(cid);renderAList();}
+
+    function openBCSend(){
+      aActiveCid=null;clearInterval(aPollTimer);
+      const cnt=getAllMembers().length;
+      document.getElementById('amsg-right').innerHTML=`<div class="amsg-hd"><div style="font-size:26px">📢</div><div><div class="amsg-hd-name">Message à tous les membres</div><div class="amsg-hd-sub" style="color:var(--accent3)">${cnt} destinataires</div></div></div><div class="bc-panel"><div style="font-family:var(--font-display);font-size:34px;letter-spacing:1px;margin-bottom:6px">📢 DIFFUSION</div><p style="color:var(--text2);margin-bottom:24px;font-size:14px">Ce message sera visible par tous les membres dans leur onglet Diffusions.</p><div class="fg"><div class="lbl">Objet *</div><input type="text" id="bc-subject" class="field" placeholder="Ex: Nouveau festival cet été !"/></div><div class="fg"><div class="lbl">Message *</div><textarea id="bc-body" rows="7" class="field" style="resize:vertical;line-height:1.6" placeholder="Écris ton message ici…"></textarea></div><div style="background:rgba(175,82,222,.1);border:1px solid rgba(175,82,222,.3);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text2)">📢 Ce message sera envoyé à <strong>${cnt}</strong> membres.</div><button class="btn-primary" onclick="doSendBC()" style="padding:13px 30px;font-size:15px">📢 Envoyer à tous</button></div>`;
+    }
+
+    function doSendBC(){const subject=(document.getElementById('bc-subject').value||'').trim();const body=(document.getElementById('bc-body').value||'').trim();if(!subject||!body){showToast('Remplis l\'objet et le message','error');return;}sendBroadcast(admin,body,subject);showToast('✓ Message envoyé à tous !','success');document.getElementById('bc-subject').value='';document.getElementById('bc-body').value='';switchATab('bcs',document.querySelectorAll('.ams-tab')[1]);renderAList();}
+
+    function viewBCSent(id){
+      const bc=getBroadcasts().find(b=>b.id===id);if(!bc) return;clearInterval(aPollTimer);
+      document.getElementById('amsg-right').innerHTML=`<div class="amsg-hd"><div style="font-size:26px">📢</div><div><div class="amsg-hd-name">${esc(bc.subject)}</div><div class="amsg-hd-sub" style="color:var(--accent3)">Envoyé ${timeAgo(bc.ts)}</div></div></div><div class="bc-panel"><div style="font-family:var(--font-display);font-size:34px;letter-spacing:1px;margin-bottom:8px">${esc(bc.subject)}</div><div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:24px">${new Date(bc.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;font-size:15px;line-height:1.8;color:var(--text2);white-space:pre-wrap">${esc(bc.text)}</div></div>`;
+    }
+
+    function delBC(id){if(!confirm('Supprimer cette diffusion ?')) return;saveBroadcasts(getBroadcasts().filter(b=>b.id!==id));showToast('Diffusion supprimée','success');renderAList();document.getElementById('amsg-right').innerHTML=`<div class="amsg-empty"><div class="ce-ico">💬</div><h3>MESSAGES ADMIN</h3><p>Sélectionne une conversation.</p></div>`;}
+
+    function openNewAConv(){const m=document.getElementById('ancm');m.style.opacity='1';m.style.pointerEvents='all';filterAMpk();}
+    function closeANCM(){const m=document.getElementById('ancm');m.style.opacity='0';m.style.pointerEvents='none';}
+    function filterAMpk(){const q=(document.getElementById('ancm-search').value||'').toLowerCase();const members=getAllMembers().filter(u=>u.id!==admin.id&&(!q||u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)));const list=document.getElementById('ancm-list');list.innerHTML=members.length?members.map(u=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s" onmouseenter="this.style.background='rgba(255,255,255,.05)'" onmouseleave="this.style.background=''" onclick="startAWith(${u.id})"><div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;color:#fff;flex-shrink:0;overflow:hidden">${avHTML(u,34)}</div><div><div style="font-weight:600;font-size:13px">${u.name}</div><div style="font-size:11px;color:var(--text3)">${u.email}</div></div></div>`).join(''):`<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Aucun membre trouvé</div>`;}
+    function startAWith(uid){const other=getUserById(uid);if(!other) return;const convs=getConversations();const cid=getConvId(admin.id,uid);if(!convs.find(c=>c.id===cid)){convs.push({id:cid,participants:[admin.id,uid],participantNames:{[admin.id]:admin.name,[uid]:other.name},messages:[]});saveConversations(convs);}closeANCM();aCurTab='convs';document.querySelectorAll('.ams-tab').forEach((b,i)=>{b.classList.remove('active');if(i===0)b.classList.add('active');});renderAList();openAConv(cid);}
+
+    seedDemoData();
+    renderAList();
+    setInterval(()=>{renderAList();},3000);
+  </script>
+</body>
+</html>

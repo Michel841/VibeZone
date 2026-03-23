@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VibeZone — Tue l'Ennui</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ═══════ NAV ═══════ -->
+<nav id="navbar">
+  <a href="index.html" class="logo">VIBE<span>ZONE</span></a>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html" class="active">Accueil</a>
+    <a href="events.html">Événements</a>
+    <a href="activities.html">Activités</a>
+    <a href="concerts.html">Concerts</a>
+    <a href="news.html"     id="nav-news"     style="display:none">Actualités</a>
+    <a href="messages.html" id="nav-messages" style="display:none">
+      Messages
+      <span id="nav-unread-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:2px 7px;border-radius:99px;font-family:var(--font-mono);margin-left:4px;vertical-align:middle;font-weight:700"></span>
+    </a>
+    <a href="profile.html"  id="nav-profile"  style="display:none">Mon Profil</a>
+  </div>
+  <div class="nav-actions">
+    <a href="login.html"    class="btn-outline"  id="btn-login">Connexion</a>
+    <a href="register.html" class="btn-primary"  id="btn-register" style="padding:11px 22px;font-size:14px">Rejoindre</a>
+    <button class="btn-primary" id="btn-logout" style="display:none;padding:11px 22px;font-size:14px" onclick="logout()">Déconnexion</button>
+  </div>
+  <button class="burger" onclick="toggleMenu()">☰</button>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="hero-grid"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="dot"></div>
+      <span>🔥 Nouveau chaque semaine</span>
+    </div>
+    <h1>
+      <span class="line1">FINI</span>
+      <span class="line2">L'ENNUI.</span>
+      <span class="line3">ENFIN.</span>
+    </h1>
+    <p>Concerts, activités, expos, soirées — tout ce dont tu as besoin pour vivre à fond, chaque semaine.</p>
+    <div class="hero-cta">
+      <a href="events.html" class="btn-primary big">🎯 Explorer les événements</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat">
+        <span class="h-stat-num" id="stat-events">—</span>
+        <span class="h-stat-lbl">Événements</span>
+      </div>
+      <div class="h-stat">
+        <span class="h-stat-num" id="stat-members">—</span>
+        <span class="h-stat-lbl">Membres</span>
+      </div>
+      <div class="h-stat">
+        <span class="h-stat-num" id="stat-cities">—</span>
+        <span class="h-stat-lbl">Villes</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-central-card">
+      <span>🎪</span>
+      <small>EN CE MOMENT</small>
+    </div>
+    <div class="event-pill ep1">
+      <div class="ep-icon">🎸</div>
+      <div class="ep-info">
+        <div class="ep-title">Concert Rock — 21h</div>
+        <div class="ep-meta">Le Zénith · Paris</div>
+      </div>
+      <div class="ep-dot"></div>
+    </div>
+    <div class="event-pill ep2">
+      <div class="ep-icon">🎨</div>
+      <div class="ep-info">
+        <div class="ep-title">Atelier Peinture</div>
+        <div class="ep-meta">Belleville · Gratuit</div>
+      </div>
+      <div class="ep-dot"></div>
+    </div>
+    <div class="event-pill ep3">
+      <div class="ep-icon">🏄</div>
+      <div class="ep-info">
+        <div class="ep-title">Surf Workshop</div>
+        <div class="ep-meta">La Baule · 15€</div>
+      </div>
+      <div class="ep-dot"></div>
+    </div>
+    <div class="event-pill ep4">
+      <div class="ep-icon">🍕</div>
+      <div class="ep-info">
+        <div class="ep-title">Food Festival</div>
+        <div class="ep-meta">La Villette · Sam.</div>
+      </div>
+      <div class="ep-dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CATEGORIES ═══════ -->
+<section class="categories reveal">
+  <div class="section-label">Explorer par catégorie</div>
+  <div class="section-header-row" style="align-items:flex-start">
+    <div>
+      <div class="section-title">Qu'est-ce qui<br>te <em>branche</em> ?</div>
+    </div>
+    <a href="events.html" class="see-all" style="margin-top:10px">Tout voir</a>
+  </div>
+  <div class="cat-grid">
+    <a href="concerts.html"          class="cat-card" style="--c:#FF3D5A">
+      <div class="cat-icon">🎵</div>
+      <div class="cat-name">Concerts</div>
+      <div class="cat-count" id="cat-concert">… events</div>
+    </a>
+    <a href="activities.html?cat=sport" class="cat-card" style="--c:#F5A623">
+      <div class="cat-icon">⚡</div>
+      <div class="cat-name">Sport & Adrénaline</div>
+      <div class="cat-count" id="cat-sport">… activités</div>
+    </a>
+    <a href="activities.html?cat=art"   class="cat-card" style="--c:#7C3AFF">
+      <div class="cat-icon">🎨</div>
+      <div class="cat-name">Art & Créa</div>
+      <div class="cat-count" id="cat-art">… ateliers</div>
+    </a>
+    <a href="events.html?cat=food"      class="cat-card" style="--c:#0FD97A">
+      <div class="cat-icon">🍜</div>
+      <div class="cat-name">Food & Boissons</div>
+      <div class="cat-count" id="cat-food">… events</div>
+    </a>
+    <a href="events.html?cat=tech"      class="cat-card" style="--c:#2563EB">
+      <div class="cat-icon">💻</div>
+      <div class="cat-name">Tech & Gaming</div>
+      <div class="cat-count" id="cat-tech">… events</div>
+    </a>
+    <a href="events.html?cat=nature"    class="cat-card" style="--c:#0FD97A">
+      <div class="cat-icon">🌿</div>
+      <div class="cat-name">Nature & Plein Air</div>
+      <div class="cat-count" id="cat-nature">… events</div>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════ FEATURED EVENTS ═══════ -->
+<section class="featured reveal">
+  <div class="section-header-row">
+    <div>
+      <div class="section-label">Sélection de la semaine</div>
+      <div class="section-title">À ne pas manquer <span class="tag-hot">HOT</span></div>
+    </div>
+    <a href="events.html" class="see-all">Tous les events</a>
+  </div>
+  <div class="events-grid" id="home-events"></div>
+</section>
+
+<!-- ═══════ PROMO BANNER ═══════ -->
+<section class="promo-section reveal">
+  <div class="promo-banner">
+    <div class="promo-content">
+      <div class="promo-text">
+        <h3>Rejoins <span>18 000+</span> membres<br>qui ne s'ennuient plus.</h3>
+        <p>Sauvegarde tes événements favoris, reçois des alertes personnalisées et connecte-toi avec ta communauté.</p>
+        <a href="register.html" class="btn-primary big">Créer un compte — c'est gratuit ✨</a>
+      </div>
+      <div class="promo-art">🎉</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CONCERTS PREVIEW ═══════ -->
+<section class="concerts-preview reveal">
+  <div class="section-header-row">
+    <div>
+      <div class="section-label">Musique live</div>
+      <div class="section-title">Concerts ce mois 🎸</div>
+    </div>
+    <a href="concerts.html" class="see-all">Tous les concerts</a>
+  </div>
+  <div class="concerts-list" id="home-concerts"></div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">VIBE<span>ZONE</span></div>
+      <p>La plateforme qui tue l'ennui depuis 2024. Concerts, activités, soirées — tout est là.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Découvrir</h4>
+      <a href="events.html">Événements</a>
+      <a href="activities.html">Activités</a>
+      <a href="concerts.html">Concerts</a>
+      <a href="news.html">Actualités</a>
+    </div>
+    <div class="footer-links">
+      <h4>Compte</h4>
+      <a href="login.html">Connexion</a>
+      <a href="register.html">Inscription</a>
+      <a href="profile.html">Mon Profil</a>
+      <a href="messages.html">Messages</a>
+    </div>
+    <div class="footer-links">
+      <h4>Équipe</h4>
+      <a href="admin/login.html">Espace Admin</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 VibeZone<span class="footer-dot"></span>Tous droits réservés</span>
+    <span style="font-size:12px;opacity:.5">Made with ❤️ pour les curieux</span>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/messaging.js"></script>
+<script src="js/app.js"></script>
+<script>
+// ── Navbar scroll effect ─────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ── Nav visibility based on auth ─────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const u = getCurrentUser();
+  const elLogin    = document.getElementById('btn-login');
+  const elRegister = document.getElementById('btn-register');
+  const elLogout   = document.getElementById('btn-logout');
+  const elProfile  = document.getElementById('nav-profile');
+  const elNews     = document.getElementById('nav-news');
+  const elMessages = document.getElementById('nav-messages');
+  const elBadge    = document.getElementById('nav-unread-badge');
+
+  if (u) {
+    elLogin?.style.setProperty('display','none');
+    elRegister?.style.setProperty('display','none');
+    elLogout?.style.setProperty('display','inline-flex');
+    elProfile?.style.setProperty('display','inline');
+    elNews?.style.setProperty('display','inline');
+    elMessages?.style.setProperty('display','inline');
+    const n = getUnreadCount(u.id);
+    if (elBadge && n > 0) { elBadge.textContent = n; elBadge.style.display = 'inline'; }
+  } else {
+    elLogout?.style.setProperty('display','none');
+    elProfile?.style.setProperty('display','none');
+    elNews?.style.setProperty('display','none');
+    elMessages?.style.setProperty('display','none');
+    elLogin?.style.setProperty('display','inline-flex');
+    elRegister?.style.setProperty('display','inline-flex');
+  }
+});
+
+// ── Live hero stats ──────────────────────────────────────────
+function computeStats() {
+  const events    = getAllEvents();
+  const base      = getAllUsers();
+  const reg       = JSON.parse(localStorage.getItem('vz_registered') || '[]');
+  const allUsers  = [...base, ...reg.filter(r => !base.find(b => b.id === r.id))];
+  const cities    = new Set(events.map(e => e.location.split(',').pop().trim()).filter(Boolean));
+  return { events: events.length, members: allUsers.length, cities: cities.size };
+}
+
+function animateCount(el, target, dur = 1000) {
+  const t0 = performance.now();
+  const step = now => {
+    const p = Math.min((now - t0) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * e);
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function updateStats() {
+  const s = computeStats();
+  animateCount(document.getElementById('stat-events'),  s.events);
+  animateCount(document.getElementById('stat-members'), s.members);
+  animateCount(document.getElementById('stat-cities'),  s.cities);
+}
+updateStats();
+window.addEventListener('storage', updateStats);
+
+// ── Category counts ──────────────────────────────────────────
+const evs = getAllEvents();
+const catMap = { concert:'cat-concert', sport:'cat-sport', art:'cat-art', food:'cat-food', tech:'cat-tech', nature:'cat-nature' };
+Object.entries(catMap).forEach(([cat, id]) => {
+  const n = evs.filter(e => e.category === cat).length;
+  const el = document.getElementById(id);
+  if (el) el.textContent = n + (cat === 'art' ? ' ateliers' : cat === 'sport' ? ' activités' : ' events');
+});
+
+// ── Featured events ──────────────────────────────────────────
+const homeEventsEl = document.getElementById('home-events');
+getAllEvents().slice(0, 3).forEach(ev => {
+  homeEventsEl.innerHTML += renderEventCard(ev);
+});
+
+// ── Concert rows ─────────────────────────────────────────────
+const homeConcertsEl = document.getElementById('home-concerts');
+getAllEvents().filter(e => e.category === 'concert').slice(0, 5).forEach(ev => {
+  homeConcertsEl.innerHTML += renderConcertRow(ev);
+});
+
+// ── Scroll reveal ─────────────────────────────────────────────
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+</script>
+</body>
+</html>

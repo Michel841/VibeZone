@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Détail Événement — VibeZone</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <nav id="navbar">
+    <a href="index.html" class="logo">VIBE<span>ZONE</span></a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="events.html">Événements</a>
+      <a href="activities.html">Activités</a>
+      <a href="concerts.html">Concerts</a>
+      <a href="news.html" id="nav-news" style="display:none">Actualités</a>
+      <a href="news.html">Actualités</a>
+      <a href="messages.html">Messages <span id="nav-unread" style="display:none" class="tag-hot" style="font-size:10px;padding:2px 6px">!</span></a>
+      <a href="messages.html" id="nav-messages" style="display:none">Messages <span id="nav-unread-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:50px;font-family:var(--font-mono);margin-left:4px;vertical-align:middle"></span></a>
+      <a href="profile.html" id="nav-profile" style="display:none">Mon Profil</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-outline" id="btn-login">Connexion</a>
+      <button class="btn-primary" id="btn-logout" style="display:none" onclick="logout()">Déconnexion</button>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </nav>
+
+  <div id="detail-content" style="padding:120px 60px 80px;max-width:900px"></div>
+
+  <section style="padding:0 60px 80px">
+    <div class="section-header">
+      <h2 style="font-family:var(--font-display);font-size:36px;letter-spacing:1px">Événements similaires</h2>
+    </div>
+    <div class="events-grid" id="similar-events"></div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand"><div class="logo">VIBE<span>ZONE</span></div><p>L'application qui tue l'ennui depuis 2024.</p></div>
+      <div class="footer-links"><h4>Navigation</h4><a href="events.html">Événements</a><a href="activities.html">Activités</a><a href="concerts.html">Concerts</a>
+      <a href="news.html" id="nav-news" style="display:none">Actualités</a></div>
+      <div class="footer-links"><h4>Compte</h4><a href="login.html">Connexion</a><a href="register.html">Inscription</a></div>
+    </div>
+    <div class="footer-bottom">© 2024 VibeZone.</div>
+  </footer>
+
+  <div class="modal-overlay" id="register-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Rejoindre l'événement</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <p style="color:var(--text2);margin-bottom:24px">Connecte-toi ou crée un compte pour t'inscrire à cet événement.</p>
+      <div style="display:flex;gap:12px">
+        <a href="login.html" class="btn-primary" style="flex:1;text-align:center">Se connecter</a>
+        <a href="register.html" class="btn-ghost" style="flex:1;text-align:center">S'inscrire</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/messaging.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = parseInt(params.get('id'));
+    const events = getAllEvents();
+    const ev = events.find(e => e.id === id);
+
+    if (!ev) {
+      document.getElementById('detail-content').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3>Événement introuvable</h3><p><a href="events.html" style="color:var(--accent)">← Retour aux événements</a></p></div>';
+    } else {
+      const pct = Math.round((ev.registered / ev.capacity) * 100);
+      document.title = ev.title + ' — VibeZone';
+
+      // Hero: photo or emoji fallback
+      const photo = getEventPhoto(ev.id);
+      const heroHTML = photo
+        ? `<div style="height:320px;border-radius:24px;margin-bottom:32px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,0.08)">
+             <img src="${photo}" alt="${ev.title}" style="width:100%;height:100%;object-fit:cover;display:block"/>
+             <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(7,7,16,0.7) 0%, transparent 50%)"></div>
+           </div>`
+        : `<div style="height:240px;display:flex;align-items:center;justify-content:center;font-size:100px;background:${ev.color}22;border-radius:24px;margin-bottom:32px;border:1px solid ${ev.color}33">${ev.emoji}</div>`;
+
+      document.getElementById('detail-content').innerHTML = `
+        <div style="margin-bottom:16px">
+          <a href="events.html" style="color:var(--text3);font-size:13px;font-family:var(--font-mono)">← Retour aux événements</a>
+        </div>
+        ${heroHTML}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          ${ev.tags.map(t => `<span style="background:rgba(255,255,255,0.06);padding:5px 14px;border-radius:50px;font-size:12px;font-family:var(--font-mono);color:var(--text2)">${t}</span>`).join('')}
+        </div>
+        <h1 style="font-family:var(--font-display);font-size:clamp(40px,5vw,70px);font-weight:800;letter-spacing:-1px;margin-bottom:24px;line-height:1">${ev.title}</h1>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:32px">
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:15px">📅 ${formatDate(ev.date)}</div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:15px">⏰ ${ev.time}</div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:15px">📍 ${ev.location}</div>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:15px">👥 ${ev.registered}/${ev.capacity} inscrits</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:32px;overflow:hidden">
+          <div style="height:8px;background:linear-gradient(90deg,var(--accent),var(--violet,#7C3AFF));border-radius:8px;width:${pct}%;transition:width 1s"></div>
+        </div>
+        <p style="color:var(--text2);line-height:1.8;font-size:16px;margin-bottom:40px">${ev.description}</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Prix d'entrée</div>
+            <div style="font-family:var(--font-display);font-size:52px;font-weight:800;background:${ev.price === 0 ? 'linear-gradient(135deg,var(--green),#00C4B0)' : 'linear-gradient(135deg,var(--accent),var(--accent-g,#FF6B4A))'};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${ev.price === 0 ? 'GRATUIT' : ev.price + '€'}</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn-primary big" onclick="joinEvent()">🎟 Réserver ma place</button>
+            <button class="btn-ghost big" onclick="saveEvent(${ev.id})">♡ Sauvegarder</button>
+          </div>
+        </div>
+      `;
+
+      // Similar
+      const similar = events.filter(e => e.id !== ev.id && e.category === ev.category).slice(0,3);
+      document.getElementById('similar-events').innerHTML = similar.map(renderEventCard).join('');
+    }
+
+    function joinEvent() {
+      const user = getCurrentUser();
+      if (!user) { document.getElementById('register-modal').classList.add('open'); return; }
+      showToast('🎉 Tu es inscrit(e) !', 'success');
+    }
+
+    function closeModal() {
+      document.getElementById('register-modal').classList.remove('open');
+    }
+  </script>
+</body>
+</html>

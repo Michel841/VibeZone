@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Actualités — VibeZone</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    .news-layout { max-width: 780px; margin: 0 auto; padding: 120px 24px 80px; }
+
+    /* Hero */
+    .news-hero { margin-bottom: 48px; }
+    .news-hero h1 { font-family: var(--font-display); font-size: clamp(48px,6vw,80px); letter-spacing: 2px; margin-bottom: 10px; }
+    .news-hero p { color: var(--text2); font-size: 16px; }
+
+    /* Filters */
+    .news-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+    .nf-btn { padding: 8px 18px; border: 1px solid var(--border); border-radius: 50px; background: var(--surface); color: var(--text2); font-size: 13px; cursor: pointer; font-family: var(--font-body); transition: .2s; }
+    .nf-btn:hover, .nf-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Post card */
+    .news-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      transition: border-color .2s, transform .2s;
+      position: relative;
+    }
+    .news-card:hover { border-color: rgba(255,255,255,.15); transform: translateY(-2px); }
+    .news-card.pinned { border-color: var(--accent2); }
+
+    .pin-badge {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,149,0,.15); border: 1px solid rgba(255,149,0,.3);
+      color: var(--accent2); font-size: 11px; font-family: var(--font-mono);
+      padding: 3px 10px; border-radius: 50px; font-weight: 700; letter-spacing: .05em;
+    }
+
+    .nc-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .nc-emoji { font-size: 40px; flex-shrink: 0; }
+    .nc-meta { flex: 1; }
+    .nc-cat { font-size: 11px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin-bottom: 4px; }
+    .nc-title { font-size: 20px; font-weight: 700; line-height: 1.3; }
+    .nc-from { font-size: 12px; color: var(--text3); font-family: var(--font-mono); margin-top: 4px; }
+
+    .nc-body { color: var(--text2); font-size: 15px; line-height: 1.75; margin-bottom: 20px; white-space: pre-wrap; }
+
+    .nc-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .nc-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .nc-tag { background: rgba(255,255,255,.06); padding: 4px 12px; border-radius: 50px; font-size: 11px; font-family: var(--font-mono); color: var(--text3); }
+    .like-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 50px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      color: var(--text2); font-family: var(--font-body);
+      transition: .2s;
+    }
+    .like-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .like-btn.liked { background: rgba(255,77,77,.12); border-color: var(--accent); color: var(--accent); }
+    .like-count { font-family: var(--font-mono); font-size: 12px; }
+
+    /* Empty */
+    .news-empty { text-align: center; padding: 80px 20px; color: var(--text3); }
+    .news-empty .ei { font-size: 64px; margin-bottom: 16px; }
+    .news-empty h3 { font-size: 22px; color: var(--text2); margin-bottom: 8px; }
+
+    /* Category colors */
+    .cat-activite  { color: #FF9500 !important; }
+    .cat-concert   { color: #FF4D4D !important; }
+    .cat-sport     { color: #FF9500 !important; }
+    .cat-art       { color: #AF52DE !important; }
+    .cat-annonce   { color: #007AFF !important; }
+    .cat-general   { color: var(--accent) !important; }
+  </style>
+</head>
+<body>
+  <nav id="navbar">
+    <a href="index.html" class="logo">VIBE<span>ZONE</span></a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="events.html">Événements</a>
+      <a href="activities.html">Activités</a>
+      <a href="news.html" class="active">Actualités</a>
+      <a href="messages.html">Messages <span id="nav-unread" style="display:none" class="tag-hot" style="font-size:9px">!</span></a>
+      <a href="profile.html" id="nav-profile" style="display:none">Mon Profil</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-outline" id="btn-login">Connexion</a>
+      <button class="btn-primary" id="btn-logout" style="display:none" onclick="logout()">Déconnexion</button>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </nav>
+
+  <div class="news-layout">
+    <div class="news-hero">
+      <h1>📰 ACTUALITÉS</h1>
+      <p>Les dernières publications de l'équipe VibeZone — activités, annonces, bons plans.</p>
+    </div>
+
+    <div class="news-filters">
+      <button class="nf-btn active" onclick="setNewsFilter('all',this)">Tout</button>
+      <button class="nf-btn" onclick="setNewsFilter('activite',this)">🏄 Activité</button>
+      <button class="nf-btn" onclick="setNewsFilter('concert',this)">🎵 Concert</button>
+      <button class="nf-btn" onclick="setNewsFilter('sport',this)">⚡ Sport</button>
+      <button class="nf-btn" onclick="setNewsFilter('art',this)">🎨 Art</button>
+      <button class="nf-btn" onclick="setNewsFilter('annonce',this)">📣 Annonce</button>
+    </div>
+
+    <div id="news-feed"></div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand"><div class="logo">VIBE<span>ZONE</span></div><p>L'application qui tue l'ennui depuis 2024.</p></div>
+      <div class="footer-links"><h4>Navigation</h4><a href="events.html">Événements</a><a href="activities.html">Activités</a><a href="news.html">Actualités</a></div>
+      <div class="footer-links"><h4>Compte</h4><a href="login.html">Connexion</a><a href="register.html">Inscription</a></div>
+      <div class="footer-links"><h4>Admin</h4><a href="admin/login.html">Espace Admin</a></div>
+    </div>
+    <div class="footer-bottom">© 2024 VibeZone.</div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/messaging.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const me = getCurrentUser();
+    let newsFilter = 'all';
+
+    const CAT_LABELS = { activite:'Activité', concert:'Concert', sport:'Sport', art:'Art', annonce:'Annonce', general:'Général' };
+
+    function setNewsFilter(f, btn){
+      newsFilter = f;
+      document.querySelectorAll('.nf-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderFeed();
+    }
+
+    function renderFeed(){
+      let posts = getNews();
+      // Pinned first
+      posts = [...posts.filter(p=>p.pinned), ...posts.filter(p=>!p.pinned)];
+      if(newsFilter !== 'all') posts = posts.filter(p=>p.category===newsFilter);
+
+      const feed = document.getElementById('news-feed');
+      if(!posts.length){
+        feed.innerHTML=`<div class="news-empty"><div class="ei">📭</div><h3>Aucune publication</h3><p>Aucune actualité dans cette catégorie pour l'instant.</p></div>`;
+        return;
+      }
+
+      feed.innerHTML = posts.map(post => {
+        const liked = me && post.likedBy && post.likedBy.includes(me.id);
+        return `
+          <div class="news-card ${post.pinned?'pinned':''}">
+            ${post.pinned ? '<div class="pin-badge">📌 ÉPINGLÉ</div>' : ''}
+            <div class="nc-head">
+              <div class="nc-emoji">${post.emoji||'📢'}</div>
+              <div class="nc-meta">
+                <div class="nc-cat cat-${post.category}">${CAT_LABELS[post.category]||post.category}</div>
+                <div class="nc-title">${post.title}</div>
+                <div class="nc-from">Par ${post.authorName} · ${timeAgo(post.ts)}</div>
+              </div>
+            </div>
+            <div class="nc-body">${post.body}</div>
+            <div class="nc-footer">
+              <div class="nc-tags"></div>
+              <button class="like-btn ${liked?'liked':''}" onclick="toggleLike(${post.id},this)">
+                ${liked?'❤️':'🤍'} <span class="like-count">${post.likes||0}</span>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function toggleLike(postId, btn){
+      if(!me){ showToast('Connecte-toi pour liker !','error'); return; }
+      const post = likeNews(postId, me.id);
+      if(!post) return;
+      const liked = post.likedBy.includes(me.id);
+      btn.className = `like-btn ${liked?'liked':''}`;
+      btn.innerHTML = `${liked?'❤️':'🤍'} <span class="like-count">${post.likes||0}</span>`;
+    }
+
+    seedDemoData();
+    renderFeed();
+    setInterval(renderFeed, 5000);
+  </script>
+</body>
+</html>

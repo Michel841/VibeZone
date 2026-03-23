@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion Utilisateurs — Admin VibeZone</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="admin-avatar.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="admin-body">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">VIBE<span>ZONE</span><small>ADMIN PANEL</small></div>
+    <nav class="admin-nav">
+      <div class="nav-section">Principal</div>
+      <a href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="events-admin.html"><span class="nav-icon">🎫</span> Événements</a>
+      <a href="users-admin.html" class="active"><span class="nav-icon">👥</span> Utilisateurs</a>
+      <div class="nav-section">Contenus</div>
+      <a href="add-event.html"><span class="nav-icon">➕</span> Ajouter un événement</a>
+      <a href="news-admin.html" class="active"><span class="nav-icon">📰</span> Actualités</a>
+      <a href="admin-messages.html"><span class="nav-icon">💬</span> Messages</a>
+      <div class="nav-section">Compte</div>
+      <a href="../index.html"><span class="nav-icon">🌐</span> Voir le site</a>
+      <a href="#" onclick="logout();window.location.href='../index.html'"><span class="nav-icon">🚪</span> Déconnexion</a>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    <div class="admin-topbar">
+      <div>
+        <h1>UTILISATEURS</h1>
+        <div class="admin-breadcrumb" id="u-count">Chargement...</div>
+      </div>
+      <input type="text" class="search-input" style="width:240px;padding:10px 18px" placeholder="🔍 Rechercher un membre..." oninput="filterUsers()" id="usearch"/>
+    </div>
+
+    <!-- Summary -->
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:32px" id="user-stats"></div>
+
+    <div class="admin-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Membre</th>
+            <th>Email</th>
+            <th>Rôle</th>
+            <th>Ville</th>
+            <th>Inscription</th>
+            <th>Favoris</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- User Detail Modal -->
+  <div class="modal-overlay" id="user-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-name">Détail utilisateur</h2>
+        <button class="modal-close" onclick="closeUserModal()">✕</button>
+      </div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="../js/data.js"></script>
+  <script src="admin-avatar.js"></script>
+  <script>
+    const user = getCurrentUser();
+    if (!user || user.role !== 'admin') window.location.href = 'login.html';
+
+    function getAllMergedUsers() {
+      const base = getAllUsers();
+      const reg = JSON.parse(localStorage.getItem('vz_registered') || '[]');
+      return [...base, ...reg.filter(r => !base.find(b => b.id === r.id))];
+    }
+
+    function renderUserStats(users) {
+      const active = users.filter(u => !u.status || u.status === 'active').length;
+      const admins = users.filter(u => u.role === 'admin').length;
+      document.getElementById('user-stats').innerHTML = `
+        <div class="stat-card" style="--c:var(--blue)">
+          <div class="stat-icon">👥</div>
+          <div class="stat-val">${users.length}</div>
+          <div class="stat-lbl">Total membres</div>
+        </div>
+        <div class="stat-card" style="--c:var(--green)">
+          <div class="stat-icon">✅</div>
+          <div class="stat-val">${active}</div>
+          <div class="stat-lbl">Membres actifs</div>
+        </div>
+        <div class="stat-card" style="--c:var(--accent3)">
+          <div class="stat-icon">⚙️</div>
+          <div class="stat-val">${admins}</div>
+          <div class="stat-lbl">Administrateurs</div>
+        </div>
+      `;
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('usearch').value.toLowerCase();
+      let users = getAllMergedUsers();
+      if (q) users = users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+      renderUsers(users);
+    }
+
+    function renderUsers(users) {
+      document.getElementById('u-count').textContent = `${users.length} membre(s) trouvé(s)`;
+      renderUserStats(users);
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : '?';
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${initials}</div>
+                <strong>${u.name}</strong>
+              </div>
+            </td>
+            <td style="color:var(--text2);font-size:13px">${u.email}</td>
+            <td><span class="badge ${u.role === 'admin' ? 'badge-concert' : 'badge-active'}">${u.role}</span></td>
+            <td style="color:var(--text2);font-size:13px">${u.city || '—'}</td>
+            <td style="font-family:var(--font-mono);font-size:12px">${formatDate(u.joined)}</td>
+            <td style="font-family:var(--font-mono);font-size:13px">${(u.saved || []).length} ♡</td>
+            <td><span class="badge ${!u.status || u.status === 'active' ? 'badge-active' : 'badge-inactive'}">${u.status || 'active'}</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm btn-sm-view" onclick="viewUser(${u.id})">Voir</button>
+                <button class="btn-sm btn-sm-del" onclick="deleteUser(${u.id})">Suppr.</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">Aucun utilisateur trouvé</td></tr>';
+      }
+    }
+
+    function viewUser(id) {
+      const users = getAllMergedUsers();
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+      const events = getAllEvents();
+      const savedEvs = events.filter(e => (u.saved || []).includes(e.id));
+      document.getElementById('modal-name').textContent = u.name;
+      document.getElementById('modal-content').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+          <div><div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px">EMAIL</div><div>${u.email}</div></div>
+          <div><div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px">RÔLE</div><span class="badge ${u.role === 'admin' ? 'badge-concert' : 'badge-active'}">${u.role}</span></div>
+          <div><div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px">VILLE</div><div>${u.city || 'Non renseignée'}</div></div>
+          <div><div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px">MEMBRE DEPUIS</div><div>${formatDate(u.joined)}</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px">ÉVÉNEMENTS FAVORIS (${savedEvs.length})</div>
+        ${savedEvs.length === 0 
+          ? '<p style="color:var(--text3)">Aucun favori</p>' 
+          : savedEvs.map(e => `<div style="padding:10px;background:var(--bg2);border-radius:8px;margin-bottom:8px;font-size:14px">${e.emoji} ${e.title}</div>`).join('')
+        }
+      `;
+      document.getElementById('user-modal').classList.add('open');
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.remove('open');
+    }
+
+    function deleteUser(id) {
+      if (id === 99 || id === 4) { showToast('Impossible de supprimer un admin !', 'error'); return; }
+      if (confirm('Supprimer cet utilisateur ?')) {
+        const base = getAllUsers().filter(u => u.id !== id);
+        saveUsers(base);
+        const reg = JSON.parse(localStorage.getItem('vz_registered') || '[]').filter(u => u.id !== id);
+        localStorage.setItem('vz_registered', JSON.stringify(reg));
+        showToast('Utilisateur supprimé', 'success');
+        filterUsers();
+      }
+    }
+
+    filterUsers();
+  </script>
+</body>
+</html>

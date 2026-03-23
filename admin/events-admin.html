@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion Événements — Admin VibeZone</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="admin-avatar.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="admin-body">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">VIBE<span>ZONE</span><small>ADMIN PANEL</small></div>
+    <nav class="admin-nav">
+      <div class="nav-section">Principal</div>
+      <a href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="events-admin.html" class="active"><span class="nav-icon">🎫</span> Événements</a>
+      <a href="users-admin.html"><span class="nav-icon">👥</span> Utilisateurs</a>
+      <div class="nav-section">Communication</div>
+      <a href="admin-messages.html"><span class="nav-icon">💬</span> Messages</a>
+      <a href="admin-news.html"><span class="nav-icon">📰</span> Actualités</a>
+      <div class="nav-section">Contenus</div>
+      <a href="add-event.html"><span class="nav-icon">➕</span> Ajouter un événement</a>
+      <a href="news-admin.html"><span class="nav-icon">📰</span> Actualités</a>
+      <a href="admin-messages.html"><span class="nav-icon">💬</span> Messages</a>
+      <div class="nav-section">Compte</div>
+      <a href="../index.html"><span class="nav-icon">🌐</span> Voir le site</a>
+      <a href="#" onclick="logout();window.location.href='../index.html'"><span class="nav-icon">🚪</span> Déconnexion</a>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    <div class="admin-topbar">
+      <div>
+        <h1>ÉVÉNEMENTS</h1>
+        <div class="admin-breadcrumb" id="ev-count">Chargement...</div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <input type="text" class="search-input" style="width:220px;padding:10px 18px" placeholder="🔍 Rechercher..." oninput="filterAdminEvents()" id="search"/>
+        <a href="add-event.html" class="btn-primary">+ Ajouter</a>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+      <button class="filter-btn active" onclick="setAdminFilter('all', this)">Tous</button>
+      <button class="filter-btn" onclick="setAdminFilter('concert', this)">Concerts</button>
+      <button class="filter-btn" onclick="setAdminFilter('sport', this)">Sport</button>
+      <button class="filter-btn" onclick="setAdminFilter('art', this)">Art</button>
+      <button class="filter-btn" onclick="setAdminFilter('food', this)">Food</button>
+      <button class="filter-btn" onclick="setAdminFilter('tech', this)">Tech</button>
+    </div>
+
+    <div class="admin-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Événement</th>
+            <th>Catégorie</th>
+            <th>Date</th>
+            <th>Lieu</th>
+            <th>Prix</th>
+            <th>Inscrits</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="events-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/messaging.js"></script>
+  <script src="admin-avatar.js"></script>
+  <script>
+    const user = getCurrentUser();
+    if (!user || user.role !== 'admin') window.location.href = 'login.html';
+
+    let adminFilter = 'all';
+
+    function setAdminFilter(f, btn) {
+      adminFilter = f;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterAdminEvents();
+    }
+
+    function filterAdminEvents() {
+      const q = document.getElementById('search').value.toLowerCase();
+      let events = getAllEvents();
+      if (adminFilter !== 'all') events = events.filter(e => e.category === adminFilter);
+      if (q) events = events.filter(e => e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q));
+      renderAdminEvents(events);
+    }
+
+    function renderAdminEvents(events) {
+      document.getElementById('ev-count').textContent = `${events.length} événement(s) trouvé(s)`;
+      const tbody = document.getElementById('events-tbody');
+      tbody.innerHTML = '';
+      events.forEach(ev => {
+        const pct   = Math.round((ev.registered / ev.capacity) * 100);
+        const photo = getEventPhoto(ev.id);
+        const thumbHTML = photo
+          ? `<img src="${photo}" alt="" style="width:48px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,.1)"/>`
+          : `<div style="width:48px;height:36px;background:${ev.color}22;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${ev.emoji}</div>`;
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                ${thumbHTML}
+                <div>
+                  <div style="font-weight:700">${ev.title}</div>
+                  <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">${ev.tags.slice(0,2).join(' · ')}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-${ev.category}">${getCategoryLabel(ev.category)}</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px">${formatDate(ev.date)}<br>${ev.time}</td>
+            <td style="color:var(--text2);font-size:13px">${ev.location}</td>
+            <td>${ev.price === 0 ? '<span style="color:var(--green);font-weight:700">Gratuit</span>' : '<strong>' + ev.price + '€</strong>'}</td>
+            <td>
+              <div style="font-family:var(--font-mono);font-size:13px">${ev.registered}/${ev.capacity}</div>
+              <div style="height:4px;background:var(--border);border-radius:4px;margin-top:4px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${pct > 80 ? 'var(--accent)' : 'var(--green)'};border-radius:4px"></div>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-active">Actif</span>
+              ${photo ? '<br><span style="font-size:10px;color:var(--green);font-family:var(--font-mono);margin-top:3px;display:block">📸 Photo</span>' : ''}
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm btn-sm-view"  onclick="window.open('../event-detail.html?id=${ev.id}','_blank')">Voir</button>
+                <button class="btn-sm btn-sm-edit"  onclick="window.location.href='add-event.html?edit=${ev.id}'">Éditer</button>
+                <button class="btn-sm" style="background:rgba(124,58,255,.12);color:#A855F7" onclick="quickPhoto(${ev.id})" title="Changer la photo">📷</button>
+                <button class="btn-sm btn-sm-del"   onclick="deleteEv(${ev.id})">Suppr.</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      if (events.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">Aucun événement trouvé</td></tr>';
+      }
+    }
+
+    function deleteEv(id) {
+      if (confirm('Supprimer cet événement définitivement ?')) {
+        saveEvents(getAllEvents().filter(e => e.id !== id));
+        deleteEventPhoto(id);
+        showToast('Événement supprimé', 'success');
+        filterAdminEvents();
+      }
+    }
+
+    // ── Quick photo upload directly from table ─────────────────
+    let _quickPhotoId = null;
+    function quickPhoto(id) {
+      _quickPhotoId = id;
+      document.getElementById('quick-photo-input').click();
+    }
+
+    document.getElementById('quick-photo-input').addEventListener('change', function() {
+      if (!this.files || !this.files[0] || !_quickPhotoId) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          // Auto-crop center 16:9
+          const CW = 800, CH = 450;
+          const canvas = document.createElement('canvas');
+          canvas.width = CW; canvas.height = CH;
+          const ctx = canvas.getContext('2d');
+          const scale = Math.max(CW / img.naturalWidth, CH / img.naturalHeight);
+          const dx = (CW - img.naturalWidth  * scale) / 2;
+          const dy = (CH - img.naturalHeight * scale) / 2;
+          ctx.drawImage(img, dx, dy, img.naturalWidth * scale, img.naturalHeight * scale);
+          saveEventPhoto(_quickPhotoId, canvas.toDataURL('image/jpeg', 0.88));
+          showToast('✓ Photo mise à jour !', 'success');
+          filterAdminEvents();
+          _quickPhotoId = null;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(this.files[0]);
+      this.value = '';
+    });
+
+    filterAdminEvents();
+  </script>
+
+  <!-- Quick photo input (hidden) -->
+  <input type="file" id="quick-photo-input" accept="image/*" style="display:none"/>
+</body>
+</html>
